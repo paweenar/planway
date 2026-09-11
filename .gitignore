@@ -8,3 +8,6 @@ Desktop.ini
 _*.html
 *.png
 node_modules/
+
+# ยกเว้นภาพประกอบของ README ซึ่งต้องขึ้น repo ไปด้วย ไม่งั้นหน้าแรกจะเป็นรูปแตก
+!docs/*.png
