@@ -184,12 +184,12 @@ button,input,select{font:inherit;color:inherit}
 .colmain{display:grid;gap:var(--gap);align-content:start;
   grid-template-columns:minmax(0,1.06fr) minmax(0,.92fr) minmax(0,1.02fr)}
 #oneView{display:contents}
-.wg-full,#dayView,.foot{grid-column:1/-1}
+.wg-full,#dayView,#histView,.foot{grid-column:1/-1}
 .wg-tl{grid-column:1}
 .wg-side{grid-column:2}
 .wg-map{grid-column:3}
 .side2{display:flex;flex-direction:column;gap:var(--gap)}
-#dayView{display:flex;flex-direction:column;gap:var(--gap)}
+#dayView,#histView{display:flex;flex-direction:column;gap:var(--gap)}
 .block{display:flex;flex-direction:column;gap:10px}
 .blockh{font-size:var(--fs-sect);font-weight:600;color:var(--ink)}
 
@@ -449,27 +449,160 @@ input:focus,select:focus{border-color:var(--accent)}
 .err{background:var(--warn-soft);color:var(--warn);border-radius:var(--r);padding:16px 18px;
   font-size:var(--fs-body)}
 .hide{display:none!important}
-
 /* ==========================================================================
-   6. กล่องเข้าสู่ระบบ (โหมดสาธิต)
+   6. หน้าเข้าสู่ระบบ (โหมดสาธิต)
+   เป็นหน้าเต็มจอทับทุกอย่าง เพราะเป็นด่านแรกตอนเปิดเว็บครั้งแรก
    ========================================================================== */
-.modalback{position:fixed;inset:0;z-index:200;padding:20px;overflow:auto;
-  background:rgba(8,10,14,.55);display:grid;place-items:center}
-.modal{position:relative;width:min(430px,100%);background:var(--surface);
-  border:1px solid var(--line);border-radius:16px;padding:30px 26px 20px;
-  box-shadow:0 30px 70px -24px rgba(0,0,0,.6);
-  display:flex;flex-direction:column;gap:11px;animation:pop .16s ease-out}
-@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.985)}to{opacity:1;transform:none}}
+.login{position:fixed;inset:0;z-index:200;overflow:auto;background:var(--bg);
+  display:grid;place-items:center;padding:clamp(12px,3vw,40px)}
+.logincard{width:min(940px,100%);background:var(--surface);border:1px solid var(--line);
+  border-radius:18px;overflow:hidden;box-shadow:var(--shadow-pop);
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);
+  animation:pop .18s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:none}}
+
+/* ฝั่งซ้าย — บอกว่าเว็บนี้ทำอะไร และล็อกอินแล้วได้อะไรเพิ่ม */
+.loginside{background:linear-gradient(160deg,var(--accent-soft),var(--surface2));
+  justify-content:center;
+  border-right:1px solid var(--line);padding:clamp(24px,2.4vw,36px);
+  display:flex;flex-direction:column;gap:14px}
+.lgbrand{display:flex;align-items:center;gap:10px;color:var(--accent)}
+.lgbrand b{font-size:clamp(20px,1.5vw,25px);letter-spacing:-.02em;color:var(--ink)}
+.lgtag{margin:0;color:var(--ink2);font-size:var(--fs-body);line-height:1.6}
+.lgwhy{margin-top:6px;font-size:var(--fs-sect);color:var(--ink)}
+.lgfeat{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+.lgfeat li{position:relative;display:grid;grid-template-columns:20px minmax(0,1fr);gap:10px;
+  font-size:var(--fs-sm);line-height:1.5;color:var(--ink2)}
+/* เครื่องหมายถูกวาดด้วย CSS ล้วน จะได้ไม่ต้องใส่ svg ซ้ำสามรอบใน HTML */
+.lgfeat li::before{content:"";width:20px;height:20px;border-radius:50%;
+  background:var(--accent);opacity:.16}
+.lgfeat li::after{content:"";position:absolute;left:6px;top:6px;width:7px;height:4px;
+  border-left:2px solid var(--accent);border-bottom:2px solid var(--accent);
+  transform:rotate(-45deg)}
+.lgnote{margin:18px 0 0;font-size:var(--fs-xs);color:var(--ink3);line-height:1.55;
+  border-top:1px solid var(--line);padding-top:13px}
+
+/* ฝั่งขวา — ปุ่มผู้ให้บริการ */
+.loginmain{position:relative;display:flex;flex-direction:column;gap:11px;
+  padding:clamp(26px,2.4vw,38px) clamp(22px,2.2vw,34px) clamp(20px,2vw,28px)}
 .modalx{position:absolute;right:12px;top:9px;background:none;border:0;font-size:24px;
   line-height:1;color:var(--ink3);cursor:pointer;padding:3px 7px}
 .modalx:hover{color:var(--ink)}
-.modal h2{font-size:22px}
-.modalsub{margin:0 0 6px;color:var(--ink2);font-size:var(--fs-body)}
+.loginmain h2{font-size:clamp(21px,1.6vw,25px)}
+.modalsub{margin:0 0 8px;color:var(--ink2);font-size:var(--fs-body);line-height:1.55}
 .oauth{display:flex;align-items:center;justify-content:center;gap:11px;width:100%;
   background:var(--surface);border:1px solid var(--line2);border-radius:10px;
   min-height:48px;padding:10px 16px;font-size:15px;font-weight:500;cursor:pointer;color:var(--ink)}
 .oauth:hover{background:var(--surface2)}
 .oauth svg{flex:none}
-.demonote{margin:10px 0 0;font-size:var(--fs-sm);line-height:1.55;color:var(--warn);
+/* เส้นคั่นคำว่า "หรือ" — ขีดสองข้างยืดเองด้วย flex ไม่ต้องคำนวณความกว้าง */
+.ordiv{display:flex;align-items:center;gap:12px;margin:5px 0;
+  font-size:var(--fs-xs);color:var(--ink3);text-transform:uppercase;letter-spacing:.08em}
+.ordiv::before,.ordiv::after{content:"";flex:1;height:1px;background:var(--line)}
+.guestbtn{width:100%;min-height:46px;background:none;border:1px dashed var(--line2);
+  border-radius:10px;color:var(--ink2);font-size:var(--fs-body);font-weight:500;cursor:pointer}
+.guestbtn:hover{border-color:var(--accent);color:var(--accent)}
+.guestnote{margin:0;font-size:var(--fs-xs);color:var(--ink3);text-align:center;line-height:1.5}
+.demonote{margin:8px 0 0;font-size:var(--fs-sm);line-height:1.55;color:var(--warn);
   background:var(--warn-soft);padding:11px 13px;border-radius:9px}
 .terms{margin:0;font-size:var(--fs-xs);color:var(--ink3);text-align:center;line-height:1.5}
+
+/* จอแคบ — ซ้อนกัน และซ่อนรายการข้อดีสามข้อ
+   บนมือถือมันไม่คุ้มพื้นที่ ดันปุ่มล็อกอินตกจอไปอยู่ใต้ fold */
+@media (max-width:860px){
+  .logincard{grid-template-columns:1fr}
+  .logincard{grid-template-rows:auto 1fr}   /* ไม่ให้ฝั่งแบรนด์ยืดกินครึ่งจอ */
+  .loginside{border-right:0;border-bottom:1px solid var(--line);gap:10px}
+  .lgwhy,.lgfeat,.lgnote{display:none}
+}
+@media (max-width:640px){
+  .login{padding:0;place-items:stretch}
+  .logincard{width:100%;min-height:100%;border:0;border-radius:0;box-shadow:none}
+}
+
+/* ==========================================================================
+   7. ประวัติการเดินทาง
+   ========================================================================== */
+.histwho{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  font-size:var(--fs-sm);color:var(--ink2)}
+.histwho .who{font-weight:600;color:var(--ink)}
+.histwho .tagx{font-size:var(--fs-xs);background:var(--surface2);color:var(--ink3);
+  border-radius:20px;padding:3px 10px}
+
+/* แถวตัวเลขสรุป — 4 ช่องบนเดสก์ท็อป 2 บนแท็บเล็ต 1 บนมือถือแคบ */
+.hkpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--gap)}
+.hkpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:var(--pad);display:flex;flex-direction:column;gap:3px;box-shadow:var(--shadow)}
+.hkpi .k{font-size:var(--fs-xs);letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink3);font-weight:600}
+.hkpi .v{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  font-size:clamp(24px,2.1vw,34px);line-height:1.1;font-weight:600;letter-spacing:-.02em}
+.hkpi .s{font-size:var(--fs-sm);color:var(--ink2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hkpi.hero .v{color:var(--accent2)}
+@media (max-width:1023px){.hkpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:460px){.hkpis{grid-template-columns:1fr}}
+
+/* ปลายทางที่ไปบ่อย */
+.hchips{display:flex;flex-wrap:wrap;gap:8px}
+.hchip{display:inline-flex;align-items:center;gap:8px;background:var(--surface2);
+  border:1px solid var(--line);border-radius:20px;padding:7px 8px 7px 14px;
+  font-size:var(--fs-sm);cursor:pointer;color:var(--ink)}
+.hchip:hover{border-color:var(--accent);color:var(--accent)}
+.hchip b{font-size:var(--fs-xs);background:var(--accent);color:var(--on-accent);
+  border-radius:20px;min-width:22px;padding:1px 7px;text-align:center;font-weight:600}
+
+/* รายการย้อนหลัง จัดกลุ่มตามวัน */
+.hday{font-size:var(--fs-xs);letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);
+  font-weight:600;padding:15px 0 7px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.hday:first-child{padding-top:0}
+.hrow{display:grid;grid-template-columns:78px minmax(0,1fr) auto auto;gap:14px;align-items:center;
+  padding:11px 12px;border-radius:var(--r-sm)}
+.hrow:hover{background:var(--surface2)}
+.hrow .ht{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  font-size:var(--fs-body);font-weight:600}
+.hrow .htsub{display:block;font-family:inherit;font-size:var(--fs-xs);color:var(--ink3);font-weight:400}
+.hroute{min-width:0}
+.hplaces{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:var(--fs-body)}
+.hplaces .ar{color:var(--ink3)}
+.hplaces .pl{font-weight:500}
+.hmeta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:3px;
+  font-size:var(--fs-xs);color:var(--ink2)}
+.hmeta .tag{font-size:11px;font-weight:600;border-radius:5px;padding:2px 6px;color:#fff}
+.hmeta .rain{color:var(--warn);background:var(--warn-soft);border-radius:5px;padding:2px 7px}
+.hmeta .rep{background:var(--surface3);border-radius:5px;padding:2px 7px}
+.hacts{display:flex;gap:6px;flex:none}
+.hbtn{background:var(--surface);border:1px solid var(--line);border-radius:8px;
+  min-height:34px;padding:0 12px;font-size:var(--fs-sm);cursor:pointer;color:var(--ink2);white-space:nowrap}
+.hbtn:hover{border-color:var(--line2);color:var(--ink)}
+.hbtn.x{padding:0 11px;color:var(--ink3)}
+.hbtn.x:hover{border-color:#C4453A;color:#C4453A}
+.ghost.sm{min-height:34px;padding:0 12px;font-size:var(--fs-sm)}
+
+/* ยังไม่มีประวัติ */
+.hempty{text-align:center;padding:34px 16px;color:var(--ink2)}
+.hempty b{display:block;font-size:var(--fs-sect);color:var(--ink);margin-bottom:5px}
+.hempty p{margin:0 auto;max-width:44ch;font-size:var(--fs-sm);line-height:1.6}
+.histfoot{margin:0;font-size:var(--fs-xs);color:var(--ink3);line-height:1.55}
+
+/* มือถือ — เวลาขึ้นไปอยู่บรรทัดบน ปุ่มลงมาข้างล่าง กันบีบจนอ่านไม่ออก */
+@media (max-width:640px){
+  .hrow{grid-template-columns:1fr auto;gap:8px;padding:12px 10px}
+  .hrow .ht{grid-column:1/-1;font-size:var(--fs-sm)}
+  .hrow .htsub{display:inline;margin-left:8px}
+  .hacts{grid-column:1/-1;justify-content:flex-end}
+  .hbtn{flex:1;max-width:170px}
+  /* ปุ่มลบเป็นไอคอน ไม่ต้องยืดเท่าปุ่มข้อความ */
+  .hbtn.x{flex:0 0 46px;max-width:46px}
+}
+
+/* ค่าที่มีตัวหนังสือไทยปน ใช้ฟอนต์ปกติ ไม่ใช่ mono (mono ไม่มีตัวไทย แล้วช่องไฟจะเพี้ยน) */
+.hkpi .v.txt{font-family:inherit;font-size:clamp(21px,1.7vw,28px);letter-spacing:-.01em}
+
+/* แท็บประวัติกินเต็มความกว้าง ไม่ต้องมีแผงตั้งค่า */
+body.tab-hist .colside{display:none}
+body.tab-hist .cols{grid-template-columns:minmax(0,1fr)}
+
+/* เวลาเดินทางเป็นคอลัมน์ตัวเลขชิดขวา อ่านเทียบกันได้ทั้งคอลัมน์ */
+.hdur{font-size:var(--fs-body);font-weight:600;text-align:right;white-space:nowrap;color:var(--ink)}
+.hdur .du{font-family:inherit;font-size:var(--fs-xs);color:var(--ink3);font-weight:400}

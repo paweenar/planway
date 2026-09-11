@@ -770,6 +770,7 @@ function draw(){
   if(r.fallback) add(t("pill.fallback"),"warn");
 
   renderModes(r); renderTimeline(r); renderBreakdown(r); renderTips(r); renderMapCard(r);
+  histTouch(r);
 }
 
 /* =======================================================================
@@ -827,9 +828,17 @@ function togglePop(popId,btnId){
   pop.classList.toggle("hide",!willOpen);
   $("#"+btnId).setAttribute("aria-expanded",String(willOpen));
 }
-function openAuth(open){
-  $("#authModal").classList.toggle("hide",!open);
-  if(open) $("#authClose").focus();
+/* gated = เปิดขึ้นมาเป็นด่านแรกตอนยังไม่เคยเลือกอะไร จึงไม่มีปุ่มปิดและกด Esc ไม่ได้
+   ต้องเลือกผู้ให้บริการ หรือกด "ใช้งานต่อโดยไม่เข้าสู่ระบบ" อย่างใดอย่างหนึ่ง
+   ถ้าเปิดจากปุ่มบนหัวจอทั้งที่ใช้งานอยู่แล้ว (gated=false) จะถอยกลับได้ตามปกติ */
+let loginGated=false;
+function openAuth(open,gated){
+  loginGated=!!(open&&gated);
+  $("#loginView").classList.toggle("hide",!open);
+  $("#authClose").classList.toggle("hide",loginGated);
+  /* ล็อกไม่ให้หน้าข้างหลังเลื่อนตามขณะหน้าล็อกอินเปิดอยู่ */
+  document.body.style.overflow=open?"hidden":"";
+  if(open) (loginGated?document.querySelector(".oauth"):$("#authClose")).focus();
 }
 
 /* วาดข้อความทั้งหน้าใหม่หลังเปลี่ยนภาษา */
@@ -843,8 +852,166 @@ function relabel(){
   $("#origin").value=sname(S.origin); $("#dest").value=sname(S.dest);
   document.querySelectorAll(".oauth [data-provider-label]").forEach(s=>
     s.textContent=t("auth.with",{p:s.getAttribute("data-provider-label")}));
-  syncLangUI(); syncThemeUI(); renderAuth(); refreshWeather(true);
+  syncLangUI(); syncThemeUI(); renderAuth(); renderHistory(); refreshWeather(true);
   renderPrep(); renderDayRows(); draw(); if(S.tab==="day") drawDay();
+}
+
+/* =======================================================================
+   7.5 ประวัติการเดินทาง
+   บันทึกให้เองทุกครั้งที่คำนวณสำเร็จ ไม่มีปุ่ม "บันทึก" ให้ผู้ใช้ต้องจำว่าต้องกด
+   ตัวเก็บจริงอยู่ใน js/history.js ไฟล์นี้ทำแค่ส่วนที่เห็นบนจอ
+   ======================================================================= */
+
+/* ผู้ใช้ที่กด "ใช้งานต่อโดยไม่เข้าสู่ระบบ" ไม่ควรโดนถามซ้ำทุกครั้งที่เปิดเว็บ */
+const GUEST_KEY="okd.guest.v1";
+const isGuest=()=>{ try{ return localStorage.getItem(GUEST_KEY)==="1"; }catch(e){ return false; } };
+function setGuest(v){
+  try{ v ? localStorage.setItem(GUEST_KEY,"1") : localStorage.removeItem(GUEST_KEY); }catch(e){}
+}
+
+let HIST_CLAIMED=0;   /* จำนวนทริปที่ยกจากโหมดไม่ล็อกอินเข้าบัญชี ไว้บอกผู้ใช้ครั้งเดียว */
+
+/* ย่อผลการคำนวณให้เหลือเท่าที่ต้องเก็บ ไม่เก็บทั้งก้อนเพราะ localStorage มีเพดาน */
+function histSnapshot(r){
+  const lines=[];
+  if(r.plan.kind!=="drive") for(const s of r.plan.segs)
+    if(s.t==="ride" && !lines.includes(s.line)) lines.push(s.line);
+  return {
+    ts:Date.now(), date:S.wxDay||wxToday(),
+    from:r.A.name, to:r.B.name,          /* เก็บชื่อไทยซึ่งเป็นคีย์จริง แล้วค่อยแปลตอนแสดง */
+    arrive:Math.round(r.target), leave:Math.round(r.leave), prepStart:Math.round(r.prepStart),
+    travel:Math.round(r.travel), buffer:Math.round(r.buffer),
+    mode:r.mode, kind:r.plan.kind, lines,
+    xfers:r.plan.xfers||0, walk:Math.round(r.plan.walk||0),
+    fare:r.plan.fare||0, km:Math.round(r.plan.km||0),
+    rain:RAIN, wxCode:WXNOW?WXNOW.code:null
+  };
+}
+/* draw() ถูกเรียกทุกตัวอักษรที่พิมพ์ จึงต้องหน่วงไว้ ไม่งั้นเขียน localStorage รัวมาก */
+let histT=null;
+function histTouch(r){
+  clearTimeout(histT);
+  histT=setTimeout(()=>{
+    histAdd(histSnapshot(r));
+    if(S.tab==="hist") renderHistory();
+  },2200);
+}
+
+function histDayLabel(iso){
+  const y=new Date(wxToday()+"T00:00"); y.setDate(y.getDate()-1);
+  if(iso===wxISO(y)) return t("hist.yesterday");
+  return dayLabel(iso);
+}
+/* "245 นาที" อ่านยากบนการ์ดสรุป เกินชั่วโมงแล้วตัดเป็น ชม. */
+function histDur(m){
+  m=Math.round(m||0);
+  return m>=60 ? t("unit.hm",{h:Math.floor(m/60),m:m%60}) : t("unit.min",{n:m});
+}
+
+/* กดทริปเก่าแล้วเด้งกลับไปแท็บวางแผนพร้อมค่าเดิม */
+function histLoadInto(e){
+  S.origin=e.from; S.dest=e.to; S.arrive=e.arrive; S.mode=e.mode;
+  $("#origin").value=sname(S.origin); $("#dest").value=sname(S.dest);
+  $("#arrive").value=hhmm(S.arrive);
+  S.tab="one"; save(); syncTabs(); draw(); refreshWeather(true);
+  scrollTo({top:0,behavior:"smooth"});
+}
+
+function renderHistory(){
+  const list=histList(), st=histStats(list);
+
+  /* ---- ประวัติของใคร ---- */
+  const who=$("#histWho"); who.innerHTML="";
+  if(USER){
+    who.appendChild(el("span","who",t("hist.for",{n:USER.name})));
+    if(USER.demo) who.appendChild(el("span","tagx",t("auth.demoBadge")));
+    if(HIST_CLAIMED) who.appendChild(el("span","tagx",t("auth.claimed",{n:HIST_CLAIMED})));
+  } else {
+    who.appendChild(el("span","tagx",t("hist.guestBucket")));
+  }
+
+  /* ---- ตัวเลขสรุป ---- */
+  const kp=$("#histKpis"); kp.innerHTML="";
+  const kpi=(k,v,s,hero,plain)=>{
+    const c=el("div","hkpi"+(hero?" hero":""));
+    /* plain = ค่าที่มีตัวหนังสือไทยปนอยู่ ต้องไม่ใช้ฟอนต์ mono
+       เพราะ IBM Plex Mono ไม่มีตัวไทย แล้วเบราว์เซอร์จะสลับฟอนต์กลางคำจนช่องไฟเพี้ยน */
+    c.append(el("span","k",t(k)), el("span","v"+(plain?" txt":" mono"),v), el("span","s",s||""));
+    kp.appendChild(c);
+  };
+  const top1=st.top[0];
+  kpi("hist.k.trips",  String(st.trips), st.rainy?t("hist.rainyN",{n:st.rainy}):"", true);
+  kpi("hist.k.places", String(st.places), top1?sname(top1[0]):"");
+  kpi("hist.k.avg",    st.avg?String(st.avg):"—", st.avg?t("unit.minShort"):"");
+  kpi("hist.k.total",  histDur(st.minutes), "", false, true);
+
+  /* ---- ปลายทางที่ไปบ่อย ---- ซ่อนถ้ามีที่เดียว เพราะซ้ำกับการ์ดด้านบน */
+  const tc=$("#histTopCard"), tp=$("#histTop"); tp.innerHTML="";
+  tc.classList.toggle("hide", st.top.length<2);
+  for(const [name,n] of st.top.slice(0,8)){
+    const b=el("button","hchip"); b.type="button";
+    b.append(el("span",null,sname(name)), el("b",null,String(n)));
+    b.onclick=()=>{
+      S.dest=name; $("#dest").value=sname(name);
+      S.tab="one"; save(); syncTabs(); draw();
+      scrollTo({top:0,behavior:"smooth"});
+    };
+    tp.appendChild(b);
+  }
+
+  /* ---- รายการย้อนหลัง ---- */
+  const host=$("#histList"); host.innerHTML="";
+  $("#histClearBtn").classList.toggle("hide",!list.length);
+  if(!list.length){
+    const e=el("div","hempty");
+    e.append(el("b",null,t("hist.empty")), el("p",null,t("hist.emptySub")));
+    host.appendChild(e);
+    return;
+  }
+
+  let curDate=null;
+  for(const h of list){
+    if(h.date!==curDate){
+      curDate=h.date;
+      host.appendChild(el("div","hday",histDayLabel(curDate)));
+    }
+    const row=el("div","hrow");
+    row.title=t("hist.leaveAt",{t:hhmm(h.leave)});
+
+    const tm=el("div","ht mono",hhmm(h.leave));
+    tm.appendChild(el("span","htsub","→ "+hhmm(h.arrive)));
+
+    const rt=el("div","hroute");
+    const pls=el("div","hplaces");
+    pls.append(el("span","pl",sname(h.from)), el("span","ar","→"), el("span","pl",sname(h.to)));
+    rt.appendChild(pls);
+
+    const meta=el("div","hmeta");
+    for(const lid of (h.lines||[])) if(LINES[lid]) meta.appendChild(tagEl(lid));
+    if(h.kind==="drive") meta.appendChild(el("span",null,t("mode.drive")));
+    else if(!(h.lines||[]).length) meta.appendChild(el("span",null,t("hist.walkOnly")));
+    if(h.fare) meta.appendChild(el("span",null,t("hist.fare",{n:h.fare})));
+    if(h.xfers) meta.appendChild(el("span",null,t("pill.xfersPlain",{n:h.xfers})));
+    if(h.rain) meta.appendChild(el("span","rain",t("hist.rain")));
+    if((h.n||1)>1) meta.appendChild(el("span","rep",t("hist.times",{n:h.n})));
+    rt.appendChild(meta);
+
+    const acts=el("div","hacts");
+    const again=el("button","hbtn",t("hist.again")); again.type="button";
+    again.onclick=()=>histLoadInto(h);
+    const del=el("button","hbtn x","×"); del.type="button";
+    del.title=t("hist.del"); del.setAttribute("aria-label",t("hist.del"));
+    del.onclick=()=>{ histRemove(h.id); renderHistory(); };
+    acts.append(again,del);
+
+    /* เวลาเดินทางแยกเป็นคอลัมน์ชิดขวา ไม่ปนอยู่ในบรรทัดรายละเอียด
+       บนจอกว้างช่วงกลางแถวจะได้ไม่โล่งเป็นช่องว่างยาว ๆ และกวาดตาเทียบตัวเลขกันได้ */
+    const dur=el("div","hdur mono",String(h.travel));
+    dur.appendChild(el("span","du"," "+t("unit.minShort")));
+
+    row.append(tm,rt,dur,acts);
+    host.appendChild(row);
+  }
 }
 
 /* =======================================================================
@@ -884,15 +1051,21 @@ $("#dpAdd").onclick=()=>{
   S.day.push({p:"สยามพารากอน",t:Math.min(22*60,(last?last.t+180:14*60)),stay:60});
   save(); renderDayRows(); drawDay();
 };
-$("#tab-one").onclick=()=>{S.tab="one"; syncTabs();};
-$("#tab-day").onclick=()=>{S.tab="day"; syncTabs();};
+const TABS=["one","day","hist"];
+for(const k of TABS) $("#tab-"+k).onclick=()=>{ S.tab=k; syncTabs(); };
 function syncTabs(){
-  const one=S.tab==="one";
-  $("#tab-one").setAttribute("aria-selected",String(one));
-  $("#tab-day").setAttribute("aria-selected",String(!one));
-  $("#oneView").classList.toggle("hide",!one);
-  $("#dayView").classList.toggle("hide",one);
-  save(); if(!one) drawDay();
+  const cur=TABS.includes(S.tab)?S.tab:"one";
+  S.tab=cur;
+  for(const k of TABS){
+    $("#tab-"+k).setAttribute("aria-selected",String(k===cur));
+    $("#"+k+"View").classList.toggle("hide",k!==cur);
+  }
+  /* แท็บประวัติไม่ต้องใช้แผงตั้งค่าด้านซ้ายเลย ซ่อนไปให้รายการได้ความกว้างเต็ม
+     บนมือถือสำคัญมาก ไม่งั้นต้องเลื่อนผ่านฟอร์มทั้งหน้าก่อนถึงจะเห็นประวัติ */
+  document.body.classList.toggle("tab-hist",cur==="hist");
+  save();
+  if(cur==="day")  drawDay();
+  if(cur==="hist") renderHistory();
 }
 $("#copyBtn").onclick=async()=>{
   const r=LAST; if(!r||r.err) return;
@@ -936,13 +1109,30 @@ $("#authBtn").onclick=e=>{
   if(USER) togglePop("acctPop","authBtn"); else { closePops(); openAuth(true); }
 };
 document.querySelectorAll(".oauth[data-provider]").forEach(b=>{
-  b.onclick=()=>{ signInWith(b.dataset.provider); openAuth(false); renderAuth(); };
+  b.onclick=()=>{
+    signInWith(b.dataset.provider);
+    setGuest(false);
+    /* ทริปที่เพิ่งวางแผนไว้ตอนยังไม่ล็อกอิน ยกเข้าบัญชีให้เลย จะได้ไม่รู้สึกว่าของหาย */
+    HIST_CLAIMED=histClaimGuest();
+    openAuth(false); renderAuth(); renderHistory();
+  };
 });
-$("#signOutBtn").onclick=()=>{ signOut(); closePops(); renderAuth(); };
+$("#guestBtn").onclick=()=>{ setGuest(true); openAuth(false); renderHistory(); };
+$("#signOutBtn").onclick=()=>{
+  signOut(); setGuest(false); HIST_CLAIMED=0;
+  closePops(); renderAuth(); renderHistory();
+  openAuth(true,true);              /* ออกจากระบบแล้วกลับไปยืนที่หน้าเข้าสู่ระบบ */
+};
 $("#authClose").onclick=()=>openAuth(false);
-$("#authModal").onclick=e=>{ if(e.target===$("#authModal")) openAuth(false); };
+$("#loginView").onclick=e=>{ if(!loginGated && e.target===$("#loginView")) openAuth(false); };
+$("#histClearBtn").onclick=()=>{
+  const n=histList().reduce((a,e)=>a+(e.n||1),0);
+  if(!n || !confirm(t("hist.clearAsk",{n}))) return;
+  histClear(); renderHistory();
+};
 document.addEventListener("keydown",e=>{
-  if(e.key==="Escape"){ openAuth(false); closePops(); }
+  /* ตอนเป็นด่านแรก กด Esc หนีไม่ได้ ต้องเลือกอย่างใดอย่างหนึ่งก่อน */
+  if(e.key==="Escape"){ if(!loginGated) openAuth(false); closePops(); }
 });
 document.addEventListener("click",()=>closePops());
 document.querySelectorAll(".pop").forEach(p=>p.addEventListener("click",e=>e.stopPropagation()));
@@ -974,3 +1164,5 @@ document.querySelectorAll(".oauth [data-provider-label]").forEach(s=>
   s.textContent=t("auth.with",{p:s.getAttribute("data-provider-label")}));
 syncLangUI(); syncThemeUI(); renderAuth();
 renderPrep(); renderDayRows(); syncTabs(); draw(); refreshWeather();
+/* ครั้งแรกที่เปิดเว็บและยังไม่เคยเลือกอะไร ให้เจอหน้าเข้าสู่ระบบก่อน */
+if(!USER && !isGuest()) openAuth(true,true);
