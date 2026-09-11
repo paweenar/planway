@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlanWay</title>
+<meta name="description" content="คำนวณเวลาออกจากบ้านและเวลาเตรียมตัว จากเวลานัดและเส้นทางขนส่งสาธารณะกรุงเทพฯ">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="css/styles.css">
+<!-- ธีม/ภาษา ต้องถูกทาก่อน paint แรก จึงโหลดแบบ blocking ตรงนี้ -->
+<script src="js/prefs.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1 data-i18n="app.name"></h1>
+      <span class="kicker" data-i18n="app.eyebrow"></span>
+    </div>
+
+    <div class="top-right">
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tab-one" aria-selected="true" data-i18n="tab.one"></button>
+        <button role="tab" id="tab-day" aria-selected="false" data-i18n="tab.day"></button>
+      </div>
+
+      <div class="tools">
+        <!-- ภาษา -->
+        <div class="popwrap">
+          <button class="icobtn" id="langBtn" aria-haspopup="menu" aria-expanded="false" data-i18n-al="menu.lang">
+            <span id="langCur">ไทย</span><span class="caret">▾</span>
+          </button>
+          <div class="pop hide" id="langPop" role="menu">
+            <button class="popitem" data-lang="th" role="menuitemradio">ไทย</button>
+            <button class="popitem" data-lang="en" role="menuitemradio">English</button>
+          </div>
+        </div>
+
+        <!-- ธีม -->
+        <div class="popwrap">
+          <button class="icobtn" id="themeBtn" aria-haspopup="menu" aria-expanded="false" data-i18n-al="menu.theme">
+            <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+              <circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M8 1.8a6.2 6.2 0 0 1 0 12.4z" fill="currentColor"/>
+            </svg><span class="caret">▾</span>
+          </button>
+          <div class="pop wide hide" id="themePop" role="menu">
+            <div class="popttl" data-i18n="theme.mode"></div>
+            <div class="segs" id="themeModes">
+              <button data-mode="auto" data-i18n="theme.auto"></button>
+              <button data-mode="light" data-i18n="theme.light"></button>
+              <button data-mode="dark" data-i18n="theme.dark"></button>
+            </div>
+            <div class="popttl" data-i18n="theme.color"></div>
+            <div class="swatches" id="swatches"></div>
+          </div>
+        </div>
+
+        <button class="ghost" id="copyBtn" data-i18n="btn.copy"></button>
+
+        <!-- บัญชี -->
+        <div class="popwrap">
+          <button class="ghost solid" id="authBtn" aria-haspopup="dialog" aria-expanded="false"></button>
+          <div class="pop hide" id="acctPop" role="menu">
+            <div class="acctcard">
+              <span class="av" id="acctAv">—</span>
+              <span class="acctmeta">
+                <b id="acctName">—</b>
+                <small id="acctMail">—</small>
+                <small class="prov" id="acctProv">—</small>
+              </span>
+            </div>
+            <button class="popitem danger" id="signOutBtn" data-i18n="btn.signout"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="cols">
+    <!-- ============ CONTROLS ============ -->
+    <div class="colside">
+      <section class="panel">
+        <div class="panel-h"><h3 data-i18n="panel.trip"></h3></div>
+        <div class="panel-b">
+          <label class="f acwrap" id="wrapOrigin"><span data-i18n="f.origin"></span>
+            <input type="text" id="origin" autocomplete="off" data-i18n-ph="ph.place">
+          </label>
+          <button class="swapbtn" id="swap" data-i18n="btn.swap"></button>
+          <label class="f acwrap" id="wrapDest"><span data-i18n="f.dest"></span>
+            <input type="text" id="dest" autocomplete="off" data-i18n-ph="ph.place">
+          </label>
+          <div class="row2">
+            <label class="f"><span data-i18n="f.arriveBy"></span>
+              <input type="time" id="arrive" value="09:00">
+            </label>
+            <label class="f"><span data-i18n="f.day"></span>
+              <select id="daytype">
+                <option value="wd" data-i18n="opt.wd"></option>
+                <option value="we" data-i18n="opt.we"></option>
+              </select>
+            </label>
+          </div>
+          <label class="f"><span data-i18n="f.cushion"></span>
+            <select id="cushion">
+              <option value="0" data-i18n="cushion.0"></option>
+              <option value="5" data-i18n="cushion.5"></option>
+              <option value="10" selected data-i18n="cushion.10"></option>
+              <option value="15" data-i18n="cushion.15"></option>
+              <option value="30" data-i18n="cushion.30"></option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel wxpanel">
+        <div class="panel-h">
+          <h3 data-i18n="wx.title"></h3>
+          <button class="wxgeo" id="wxGeo">
+            <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+              <circle cx="8" cy="8" r="3" fill="currentColor"/>
+              <circle cx="8" cy="8" r="5.6" fill="none" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M8 .8v2.2M8 13v2.2M.8 8h2.2M13 8h2.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg><span data-i18n="wx.useGps"></span>
+          </button>
+        </div>
+        <div class="panel-b">
+          <div class="wxplace" id="wxPlace"></div>
+
+          <div class="wxnow" id="wxNow"></div>
+
+          <div class="wxchart" id="wxChart"></div>
+          <div class="segs wxtabs" role="group" data-i18n-al="wx.chart">
+            <button data-wxm="temp" aria-pressed="true" data-i18n="wx.m.temp"></button>
+            <button data-wxm="rain" aria-pressed="false" data-i18n="wx.m.rain"></button>
+            <button data-wxm="wind" aria-pressed="false" data-i18n="wx.m.wind"></button>
+          </div>
+
+          <div class="wxdays" id="wxDays"></div>
+          <p class="note" id="wxNote"></p>
+
+          <div class="segs" role="group" data-i18n-al="wx.override">
+            <button data-wx="auto" aria-pressed="true" data-i18n="wx.auto"></button>
+            <button data-wx="dry" aria-pressed="false" data-i18n="wx.dry"></button>
+            <button data-wx="rain" aria-pressed="false" data-i18n="wx.rain"></button>
+          </div>
+          <div class="wxfoot"><span data-i18n="wx.src"></span></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-h"><h3 data-i18n="panel.prep"></h3></div>
+        <div class="panel-b">
+          <div id="prepList"></div>
+          <div class="addrow">
+            <input type="text" id="prepName" data-i18n-ph="ph.prepName" autocomplete="off">
+            <input type="number" id="prepMin" value="10" min="0" max="240" data-i18n-al="unit.minShort">
+            <button id="prepAdd" data-i18n="btn.add"></button>
+          </div>
+          <div class="tot"><span data-i18n="prep.total"></span><b><span id="prepTotal">0</span> <span id="prepUnit"></span></b></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============ RESULT ============ -->
+    <div class="colmain">
+      <div id="oneView">
+        <div id="errBox" class="err hide wg-full"></div>
+
+        <section class="verdict wg-full" aria-live="polite">
+          <div class="vgrid">
+            <div class="vcell hero">
+              <span class="k" data-i18n="v.prep"></span>
+              <span class="t mono" id="tPrep">—</span>
+              <span class="s" id="sPrep">—</span>
+            </div>
+            <div class="vcell">
+              <span class="k" data-i18n="v.leave"></span>
+              <span class="t mono" id="tLeave">—</span>
+              <span class="s" id="sLeave">—</span>
+            </div>
+            <div class="vcell">
+              <span class="k" data-i18n="v.arrive"></span>
+              <span class="t mono" id="tArrive">—</span>
+              <span class="s" id="sArrive">—</span>
+            </div>
+          </div>
+          <div class="vbar" id="vbar"></div>
+        </section>
+
+        <section class="block wg-full">
+          <div class="blockh" data-i18n="modes.title"></div>
+          <div class="modes" id="modes"></div>
+        </section>
+
+        <!-- ผลลัพธ์แยกเป็น 3 คอลัมน์บนจอกว้าง: ไทม์ไลน์ | ที่มาของเวลา+ข้อควรรู้ | แผนที่
+             จอแคบลงจะยุบเป็น 2 แล้วเหลือ 1 คอลัมน์เอง (ดู .colmain ใน styles.css) -->
+        <section class="panel wg-tl">
+          <div class="panel-h"><h3 data-i18n="panel.timeline"></h3></div>
+          <div class="panel-b"><ul class="tl" id="timeline"></ul></div>
+        </section>
+
+        <div class="side2 wg-side">
+          <section class="panel">
+            <div class="panel-h"><h3 data-i18n="panel.breakdown"></h3></div>
+            <div class="panel-b"><ul class="brk" id="breakdown"></ul></div>
+          </section>
+          <section class="panel">
+            <div class="panel-h"><h3 data-i18n="panel.tips"></h3></div>
+            <div class="panel-b"><ul class="tips" id="tips"></ul></div>
+          </section>
+        </div>
+
+        <section class="mapwrap wg-map">
+          <div class="maphead">
+            <h3 data-i18n="panel.map"></h3>
+            <a class="gmlink" id="gmLink" target="_blank" rel="noopener" data-i18n="map.google"></a>
+          </div>
+          <div class="segs maptabs" role="group" data-i18n-al="panel.map">
+            <button data-mapv="live" aria-pressed="true" data-i18n="map.live"></button>
+            <button data-mapv="plan" aria-pressed="false" data-i18n="map.plan"></button>
+          </div>
+          <div id="mapLive"></div>
+          <div id="mapHost"></div>
+          <p class="maphint" id="mapHint"></p>
+          <div class="maplegend" id="mapLegend"></div>
+        </section>
+      </div>
+
+      <div id="dayView" class="hide">
+        <section class="panel">
+          <div class="panel-h"><h3 data-i18n="day.appts"></h3></div>
+          <div class="panel-b">
+            <div class="dp" id="dpRows"></div>
+            <div class="addrow"><button id="dpAdd" data-i18n="day.add"></button></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-h"><h3 data-i18n="day.plan"></h3></div>
+          <div class="panel-b"><ul class="chain" id="chain"></ul></div>
+        </section>
+      </div>
+
+      <div class="foot">
+        <span data-i18n="foot.1"></span>
+        <span data-i18n="foot.2"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ AUTH MODAL (โหมดสาธิต) ============ -->
+<div class="modalback hide" id="authModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <button class="modalx" id="authClose" data-i18n-al="auth.close">×</button>
+    <h2 id="authTitle" data-i18n="auth.title"></h2>
+    <p class="modalsub" data-i18n="auth.sub"></p>
+
+    <button class="oauth" data-provider="google">
+      <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true">
+        <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.17-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.88 2.69-6.62z"/>
+        <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26c-.81.54-1.84.86-3.05.86-2.34 0-4.33-1.58-5.04-3.71H.96v2.33A9 9 0 0 0 9 18z"/>
+        <path fill="#FBBC05" d="M3.96 10.71a5.41 5.41 0 0 1 0-3.42V4.96H.96a9 9 0 0 0 0 8.08l3-2.33z"/>
+        <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.96l3 2.33C4.67 5.16 6.66 3.58 9 3.58z"/>
+      </svg>
+      <span data-provider-label="Google"></span>
+    </button>
+
+    <button class="oauth" data-provider="apple">
+      <svg viewBox="0 0 18 18" width="17" height="17" aria-hidden="true" fill="currentColor">
+        <path d="M12.42 9.53c-.02-1.9 1.55-2.81 1.62-2.86-.88-1.29-2.26-1.47-2.75-1.49-1.17-.12-2.28.69-2.87.69-.59 0-1.5-.67-2.47-.65-1.27.02-2.44.74-3.09 1.87-1.32 2.29-.34 5.68.95 7.54.63.91 1.38 1.93 2.36 1.89.95-.04 1.31-.61 2.46-.61s1.47.61 2.47.59c1.02-.02 1.67-.93 2.29-1.84.72-1.05 1.02-2.07 1.04-2.13-.02-.01-2-.77-2.01-3.05zM10.6 3.7c.52-.64.87-1.52.78-2.4-.75.03-1.66.5-2.2 1.13-.48.56-.9 1.46-.79 2.32.84.07 1.69-.42 2.21-1.05z"/>
+      </svg>
+      <span data-provider-label="Apple"></span>
+    </button>
+
+    <button class="oauth" data-provider="facebook">
+      <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true">
+        <circle cx="9" cy="9" r="9" fill="#1877F2"/>
+        <path fill="#fff" d="M12.2 11.6l.4-2.6h-2.5V7.3c0-.71.35-1.4 1.46-1.4h1.14V3.68S11.66 3.5 10.68 3.5c-2.05 0-3.38 1.24-3.38 3.48V9H5v2.6h2.3V18a9.1 9.1 0 0 0 2.8 0v-6.4h2.1z"/>
+      </svg>
+      <span data-provider-label="Facebook"></span>
+    </button>
+
+    <p class="demonote" data-i18n="auth.demo"></p>
+    <p class="terms" data-i18n="auth.terms"></p>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/places.js"></script>
+<script src="js/weather.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/map.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

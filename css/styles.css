@@ -1,0 +1,475 @@
+/* PlanWay — เลย์เอาต์และธีม
+   ==========================================================================
+   ระดับความกว้างที่ออกแบบไว้ (ทุก media query ในไฟล์นี้อิงชุดนี้)
+     Mobile   < 640px    ทุกอย่างคอลัมน์เดียว
+     Tablet   640–1023   แผงตั้งค่าเป็น 2 ช่องด้านบน ผลลัพธ์เต็มความกว้าง
+     Laptop   1024–1439  แถบตั้งค่า | ผลลัพธ์ 2 คอลัมน์
+     Desktop  ≥ 1440     แถบตั้งค่า | ไทม์ไลน์ | ที่มาของเวลา | แผนที่  (3 คอลัมน์ผลลัพธ์)
+   ระยะห่างและขนาดตัวอักษรใช้ clamp() ให้ไหลตามจอ ไม่ตรึงเป็น px ค่าเดียว
+   ========================================================================== */
+
+html{color-scheme:light dark}
+img,svg{max-width:100%}
+[hidden]{display:none!important}
+
+:root{
+  /* ---- สี ---- */
+  --bg:#F4F6F8; --surface:#FFFFFF; --surface2:#EDF0F4; --surface3:#DFE4EA;
+  --ink:#121620; --ink2:#525C6B; --ink3:#7B8593;
+  --line:#DDE2E9; --line2:#C6CDD7;
+  /* --accent / --accent2 / --accent-soft / --on-accent ถูกเซ็ตทับโดย js/prefs.js ตามธีมที่เลือก */
+  --accent:#D9482A; --accent2:#AE3518; --accent-soft:#FBE7E1; --on-accent:#FFFFFF;
+  --ok:#12805A; --ok-soft:#DDF0E7; --warn:#9A6608; --warn-soft:#F8EED6;
+  --shadow:0 1px 2px rgba(18,22,32,.05), 0 6px 20px -14px rgba(18,22,32,.22);
+  --shadow-pop:0 2px 6px rgba(18,22,32,.06), 0 22px 48px -20px rgba(18,22,32,.4);
+
+  /* ---- ระยะห่าง ---- */
+  --gut:clamp(16px,2.1vw,56px);      /* ขอบซ้าย-ขวาของหน้า (จอยิ่งกว้างยิ่งเว้นมาก) */
+  --gap:clamp(14px,1.35vw,22px);     /* ช่องไฟระหว่างการ์ด */
+  --pad:clamp(16px,1.15vw,22px);     /* padding ในการ์ด */
+  --r:12px; --r-sm:9px;
+
+  /* ---- ขนาดตัวอักษร ---- */
+  --fs-title:clamp(21px,1.5vw,26px); /* ชื่อระบบบนหัวจอ */
+  --fs-sect:15.5px;                  /* หัวข้อการ์ด */
+  --fs-body:15px;                    /* เนื้อความ */
+  --fs-sm:13px;                      /* คำอธิบายรอง */
+  --fs-xs:12px;                      /* metadata (ห้ามเล็กกว่านี้) */
+  --fs-kpi:clamp(30px,2.7vw,44px);   /* ตัวเลขใหญ่บนการ์ดสรุป */
+
+  --ctl-h:42px;                      /* ความสูงมาตรฐานของ input/ปุ่ม */
+  color-scheme:light;
+}
+
+/* โหมดมืด — ค่าเดียวกันสองที่ เพราะต้องรองรับทั้ง "ตามระบบ" และ "เลือกเอง" */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1116; --surface:#171B22; --surface2:#212630; --surface3:#2B313C;
+    --ink:#EEF1F6; --ink2:#9AA4B2; --ink3:#78828F;
+    --line:#2A303A; --line2:#3A414D;
+    --accent:#FF7A52; --accent2:#FF9878; --accent-soft:#33201B; --on-accent:#12151A;
+    --ok:#41C48D; --ok-soft:#163026; --warn:#E0A93C; --warn-soft:#2E2616;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -16px rgba(0,0,0,.7);
+    --shadow-pop:0 2px 6px rgba(0,0,0,.5), 0 24px 52px -20px rgba(0,0,0,.8);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1116; --surface:#171B22; --surface2:#212630; --surface3:#2B313C;
+  --ink:#EEF1F6; --ink2:#9AA4B2; --ink3:#78828F;
+  --line:#2A303A; --line2:#3A414D;
+  --accent:#FF7A52; --accent2:#FF9878; --accent-soft:#33201B; --on-accent:#12151A;
+  --ok:#41C48D; --ok-soft:#163026; --warn:#E0A93C; --warn-soft:#2E2616;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -16px rgba(0,0,0,.7);
+  --shadow-pop:0 2px 6px rgba(0,0,0,.5), 0 24px 52px -20px rgba(0,0,0,.8);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Anuphan","Noto Sans Thai","Sarabun",system-ui,-apple-system,sans-serif;
+  font-size:var(--fs-body); line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+html[lang="en"] body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+h1,h2,h3{margin:0;text-wrap:balance;font-weight:600;letter-spacing:-.01em}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+
+/* ==========================================================================
+   1. คอนเทนเนอร์หลัก — เต็มความกว้างจอ ไม่จำกัด max-width
+   เหลือแค่ขอบ --gut ที่โตตามจอ เนื้อหาจึงไม่ชิดขอบและใช้พื้นที่ได้หมดทุกขนาด
+   ========================================================================== */
+.wrap{width:100%;max-width:none;margin:0 auto;padding-inline:var(--gut);padding-block:0 64px}
+
+/* ---------- app bar ---------- */
+.top{position:sticky;top:0;z-index:50;background:var(--bg);
+  margin-inline:calc(-1 * var(--gut));padding:14px var(--gut);margin-bottom:var(--gap);
+  min-height:72px;border-bottom:1px solid var(--line);
+  display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;
+  transition:padding .16s ease, box-shadow .16s ease, min-height .16s ease}
+/* เนื้อหาเลื่อนลอดใต้หัวจอเสมอ จึงต้องทำให้ดูเป็นแผ่นที่ลอยอยู่ข้างบนให้ชัด */
+.top.compact{min-height:60px;padding-block:9px;border-bottom-color:var(--line2);
+  box-shadow:0 6px 18px -8px rgba(0,0,0,.28)}
+:root[data-theme="dark"] .top.compact{box-shadow:0 6px 18px -6px rgba(0,0,0,.7)}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .top.compact{box-shadow:0 6px 18px -6px rgba(0,0,0,.7)}
+}
+.brand{display:flex;align-items:baseline;gap:12px;min-width:0}
+.brand h1{font-size:var(--fs-title);line-height:1.2;font-weight:700;letter-spacing:-.02em}
+.top.compact .brand h1{font-size:clamp(18px,1.2vw,21px)}
+.kicker{font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink3);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:1200px){.kicker{display:none}}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:10px 12px;flex-wrap:wrap;justify-content:flex-end}
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.eyebrow{font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+
+.tabs{display:flex;gap:3px;background:var(--surface2);padding:4px;border-radius:10px}
+.tabs button{background:none;border:0;padding:8px 18px;border-radius:7px;cursor:pointer;
+  font-size:14px;font-weight:500;color:var(--ink2)}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+
+/* ปุ่มทุกตัวสูงเท่ากันหมด กดง่ายบนทัชสกรีน */
+.ghost{background:var(--surface);border:1px solid var(--line);border-radius:9px;
+  min-height:var(--ctl-h);padding:0 16px;font-size:14px;cursor:pointer;color:var(--ink2);white-space:nowrap}
+.ghost:hover{border-color:var(--line2);color:var(--ink)}
+.ghost.solid{background:var(--accent);border-color:transparent;color:var(--on-accent);font-weight:600}
+.ghost.solid:hover{background:var(--accent2);color:var(--on-accent)}
+.icobtn{display:inline-flex;align-items:center;gap:6px;background:var(--surface);
+  border:1px solid var(--line);border-radius:9px;min-height:var(--ctl-h);padding:0 12px;
+  font-size:14px;cursor:pointer;color:var(--ink2)}
+.icobtn:hover{border-color:var(--line2);color:var(--ink)}
+.caret{font-size:11px;opacity:.65}
+
+@media (max-width:640px){
+  .top{min-height:0;padding-block:12px}
+  .top-right{margin-left:0;width:100%;justify-content:flex-start;gap:9px}
+  .tabs{flex:1}
+  .tabs button{flex:1;padding-inline:8px}
+  .tools{width:100%;display:grid;grid-template-columns:auto auto minmax(0,1fr) minmax(0,1fr)}
+  .tools>*{min-width:0}
+  .tools>.ghost,.tools>.popwrap>button{width:100%;justify-content:center}
+  .tools>.popwrap:nth-child(-n+2)>button{width:auto}
+  .tools .ghost{overflow:hidden;text-overflow:ellipsis;padding-inline:10px}
+}
+
+/* ---------- popover ---------- */
+.popwrap{position:relative}
+.pop{position:absolute;right:0;top:calc(100% + 8px);z-index:70;min-width:184px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow-pop);padding:7px;display:flex;flex-direction:column;gap:2px}
+.pop.wide{min-width:250px;padding:13px;gap:10px}
+@media (max-width:640px){
+  #langPop,#themePop{left:0;right:auto}
+  .pop{max-width:calc(100vw - 32px)}
+}
+.popitem{background:none;border:0;border-radius:7px;padding:9px 12px;text-align:left;
+  font-size:14px;cursor:pointer;color:var(--ink)}
+.popitem:hover{background:var(--surface2)}
+.popitem[aria-checked="true"]{background:var(--accent-soft);color:var(--accent2);font-weight:600}
+.popitem.danger{color:var(--accent2);border-top:1px solid var(--line);border-radius:0 0 7px 7px;margin-top:4px}
+.popttl{font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.sw{height:32px;border-radius:9px;border:2px solid transparent;cursor:pointer;padding:0;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.sw[aria-pressed="true"]{border-color:var(--ink)}
+
+.acctcard{display:flex;gap:11px;align-items:center;padding:9px 10px 11px}
+.acctmeta{display:flex;flex-direction:column;min-width:0}
+.acctmeta b{font-size:14px}
+.acctmeta small{font-size:var(--fs-xs);color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acctmeta .prov{color:var(--ink2)}
+.av{width:34px;height:34px;flex:none;border-radius:50%;background:var(--accent);color:var(--on-accent);
+  display:grid;place-items:center;font-size:14px;font-weight:600}
+.acctbtn{display:inline-flex;align-items:center;gap:8px;background:var(--surface);
+  border:1px solid var(--line);border-radius:999px;padding:4px 14px 4px 4px;cursor:pointer;
+  font-size:14px;color:var(--ink);max-width:220px;min-height:var(--ctl-h)}
+.acctbtn:hover{border-color:var(--line2)}
+.acctbtn .av{width:30px;height:30px;font-size:13px}
+.acctbtn .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ==========================================================================
+   2. โครงกริดของหน้า
+   ========================================================================== */
+.cols{display:grid;grid-template-columns:clamp(292px,21vw,340px) minmax(0,1fr);
+  gap:var(--gap);align-items:start}
+.colside{display:flex;flex-direction:column;gap:var(--gap)}
+
+/* พื้นที่ผลลัพธ์เป็นกริดเอง — #oneView ใช้ display:contents ให้ลูกของมันไปเป็นช่องในกริดนี้เลย
+   จะได้ไม่ต้องมี wrapper ซ้อนอีกชั้นซึ่งทำให้จัดคอลัมน์ไม่ได้ */
+.colmain{display:grid;gap:var(--gap);align-content:start;
+  grid-template-columns:minmax(0,1.06fr) minmax(0,.92fr) minmax(0,1.02fr)}
+#oneView{display:contents}
+.wg-full,#dayView,.foot{grid-column:1/-1}
+.wg-tl{grid-column:1}
+.wg-side{grid-column:2}
+.wg-map{grid-column:3}
+.side2{display:flex;flex-direction:column;gap:var(--gap)}
+#dayView{display:flex;flex-direction:column;gap:var(--gap)}
+.block{display:flex;flex-direction:column;gap:10px}
+.blockh{font-size:var(--fs-sect);font-weight:600;color:var(--ink)}
+
+/* Laptop — ผลลัพธ์เหลือ 2 คอลัมน์ แผนที่ลงมาเต็มความกว้างข้างล่าง */
+@media (max-width:1439px){
+  .colmain{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)}
+  .wg-map{grid-column:1/-1}
+}
+/* Tablet — คอลัมน์เดียว แต่แผงตั้งค่ากับการ์ดรองจับคู่กันเป็น 2 ช่อง ไม่ยืดเต็มจอจนดูโหว่ */
+@media (max-width:1023px){
+  .cols{grid-template-columns:1fr}
+  .colmain{grid-template-columns:1fr}
+  .wg-tl,.wg-side,.wg-map{grid-column:1/-1}
+  .colside{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  .colside>.wxpanel{grid-column:1/-1;order:1}
+  .side2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+}
+/* Mobile — ทุกอย่างคอลัมน์เดียว */
+@media (max-width:640px){
+  .colside,.side2{grid-template-columns:1fr}
+}
+
+/* ==========================================================================
+   3. การ์ด
+   ========================================================================== */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow)}
+.panel-h{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:var(--pad) var(--pad) 0}
+.panel-h h3{font-size:var(--fs-sect);letter-spacing:-.005em}
+.panel-b{padding:14px var(--pad) var(--pad);display:flex;flex-direction:column;gap:14px}
+
+label.f{display:flex;flex-direction:column;gap:6px;font-size:var(--fs-sm);color:var(--ink2);font-weight:500}
+input[type="text"],input[type="time"],input[type="number"],select{
+  background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);
+  min-height:var(--ctl-h);padding:9px 12px;font-size:15px;width:100%;min-width:0}
+input:hover,select:hover{border-color:var(--line2)}
+input:focus,select:focus{border-color:var(--accent)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.swapbtn{align-self:center;background:var(--surface2);border:1px solid var(--line);
+  border-radius:8px;padding:5px 14px;font-size:var(--fs-sm);cursor:pointer;color:var(--ink2);width:fit-content}
+.swapbtn:hover{border-color:var(--line2);color:var(--ink)}
+
+/* ---------- ช่องค้นหาสถานที่ + รายการแนะนำ ---------- */
+.acwrap{position:relative}
+.aclist{position:absolute;left:0;right:0;top:100%;margin-top:5px;z-index:80;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow-pop);padding:5px;max-height:330px;overflow-y:auto}
+.acitem{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;width:100%;
+  background:none;border:0;border-radius:8px;padding:9px 11px;text-align:left;cursor:pointer;color:var(--ink)}
+.acitem:hover,.acitem.on{background:var(--surface2)}
+/* ต้องระบุตำแหน่งให้ครบทั้งสามช่อง — ถ้าปล่อยให้ auto-placement จัดเอง
+   ไอเทมที่ระบุแค่ row จะถูกวางก่อนไอเทมที่ไม่ระบุอะไรเลย แล้วชื่อกับป้ายจะสลับข้างกัน */
+.acitem .acn{grid-area:1/1;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acitem .acd{grid-area:2/1;font-size:var(--fs-xs);color:var(--ink3);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acitem .ack{grid-area:1/2;font-size:var(--fs-xs);color:var(--ink3);align-self:center;white-space:nowrap}
+
+.errhint{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;font-size:var(--fs-sm)}
+.errchip{background:var(--surface);border:1px solid var(--line2);border-radius:999px;
+  padding:5px 14px;font-size:var(--fs-sm);cursor:pointer;color:var(--ink)}
+.errchip:hover{border-color:var(--accent);color:var(--accent2)}
+
+.segs{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:10px}
+.segs button{flex:1;background:none;border:0;padding:9px 6px;border-radius:7px;cursor:pointer;
+  font-size:13.5px;font-weight:500;color:var(--ink2);white-space:nowrap}
+.segs button:hover{color:var(--ink)}
+.segs button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+
+/* ---------- แผงพยากรณ์อากาศ ---------- */
+:root{--wx-sun:#E09315; --wx-cloud:#A9B4C4; --wx-rain:#3F86D6; --wx-bolt:#E09315}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--wx-sun:#F0B84A;--wx-cloud:#6E7A8B;--wx-rain:#6FADEF}}
+:root[data-theme="dark"]{--wx-sun:#F0B84A;--wx-cloud:#6E7A8B;--wx-rain:#6FADEF}
+
+.wxgeo{display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid var(--line);
+  border-radius:999px;padding:6px 12px 6px 10px;font-size:var(--fs-sm);color:var(--ink2);cursor:pointer}
+.wxgeo:hover{border-color:var(--accent);color:var(--accent2)}
+.wxplace{display:flex;align-items:center;gap:7px;font-size:var(--fs-sm);color:var(--ink2);min-width:0}
+.wxplace svg{flex:none;color:var(--accent)}
+.wxplace span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wxplace b{color:var(--ink);font-weight:600}
+
+.wxnow{display:flex;align-items:center;gap:14px;padding:2px 0}
+.wxnow svg{flex:none}
+.wxnow-t{font-size:clamp(34px,2.4vw,42px);font-weight:500;line-height:1;letter-spacing:-.02em}
+.wxnow-t i{font-size:15px;font-style:normal;color:var(--ink3);vertical-align:11px;margin-left:2px}
+.wxnow-meta{display:flex;flex-direction:column;font-size:var(--fs-xs);color:var(--ink2);line-height:1.5;min-width:0}
+.wxnow-meta b{font-size:var(--fs-sm);color:var(--ink);font-weight:600}
+
+.wxtabs button{font-size:var(--fs-sm)}
+.wxchart svg{display:block;width:100%;height:auto;overflow:visible}
+.wxchart{margin-bottom:-4px}
+.wxfoot{font-size:var(--fs-xs);color:var(--ink3);text-align:right}
+
+.wxdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.wxday{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 7px;
+  background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer;line-height:1.25}
+.wxday:hover{border-color:var(--line2)}
+.wxday[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);
+  box-shadow:inset 0 0 0 1px var(--accent)}
+.wxday .wd{font-size:var(--fs-xs);font-weight:600;color:var(--ink2);white-space:nowrap}
+.wxday.today .wd,.wxday[aria-pressed="true"] .wd{color:var(--accent2)}
+.wxday .tt{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink2);font-weight:600}
+.wxday .pp{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink3)}
+.wxday .pp.wet{color:var(--wx-rain);font-weight:600}
+
+/* ---------- รายการเตรียมตัว ---------- */
+.chk{display:flex;align-items:center;gap:11px;font-size:var(--fs-body);padding:8px 0;border-top:1px solid var(--line)}
+.chk:first-of-type{border-top:0;padding-top:0}
+.chk input[type="checkbox"]{width:17px;height:17px;accent-color:var(--accent);flex:none;margin:0}
+/* ปล่อยให้ชื่อรายการตัดบรรทัดเอง ดีกว่าตัดท้ายทิ้งด้วย ellipsis จนอ่านไม่รู้เรื่อง */
+.chk span.nm{flex:1;min-width:0;overflow-wrap:anywhere}
+.chk input[type="number"]{width:68px;min-height:34px;padding:4px 8px;text-align:right;
+  font-family:"IBM Plex Mono",monospace}
+.chk .u{font-size:var(--fs-xs);color:var(--ink3);min-width:26px}
+.chk .rm{background:none;border:0;color:var(--ink3);cursor:pointer;padding:0 4px;font-size:18px;line-height:1}
+.chk .rm:hover{color:var(--accent)}
+.addrow{display:flex;gap:8px}
+.addrow input{flex:1}
+.addrow input[type="number"]{flex:none;width:76px}
+.addrow button{background:var(--surface2);border:1px solid var(--line);border-radius:var(--r-sm);
+  min-height:var(--ctl-h);padding:0 16px;cursor:pointer;font-size:14px;white-space:nowrap}
+.addrow button:hover{border-color:var(--line2)}
+.tot{display:flex;justify-content:space-between;align-items:baseline;
+  padding-top:12px;border-top:1px solid var(--line);font-size:var(--fs-sm);color:var(--ink2)}
+.tot b{font-family:"IBM Plex Mono",monospace;font-size:19px;color:var(--ink);font-weight:600}
+
+/* ==========================================================================
+   4. การ์ดสรุป (KPI)
+   ========================================================================== */
+.verdict{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
+  box-shadow:var(--shadow);overflow:hidden}
+.vgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.vcell{padding:20px 24px 22px;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.vcell:first-child{border-left:0}
+.vcell .k{font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.vcell .t{font-family:"IBM Plex Mono",monospace;font-size:var(--fs-kpi);line-height:1.05;
+  font-weight:500;letter-spacing:-.025em}
+.vcell .s{font-size:var(--fs-sm);color:var(--ink2)}
+.vcell.hero{background:var(--accent-soft)}
+.vcell.hero .t{color:var(--accent2)}
+/* Tablet ลงมา: การ์ดหลักเต็มแถว อีกสองใบวางคู่กัน */
+@media (max-width:640px){
+  .vgrid{grid-template-columns:1fr 1fr}
+  .vcell{padding:14px 16px 16px}
+  .vcell.hero{grid-column:1/-1}
+  .vcell:nth-child(2){border-left:0;border-top:1px solid var(--line)}
+  .vcell:nth-child(3){border-top:1px solid var(--line)}
+}
+.vbar{display:flex;flex-wrap:wrap;gap:8px;padding:13px 24px;border-top:1px solid var(--line);
+  background:var(--surface2);align-items:center}
+@media (max-width:640px){.vbar{padding:11px 16px}}
+.pill{font-size:var(--fs-sm);padding:5px 12px;border-radius:999px;background:var(--surface);
+  border:1px solid var(--line);color:var(--ink2);white-space:nowrap}
+.pill.good{background:var(--ok-soft);border-color:transparent;color:var(--ok)}
+.pill.warn{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+.pill b{font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink)}
+
+/* ---------- เทียบรูปแบบการเดินทาง ---------- */
+.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--gap)}
+@media (max-width:640px){.modes{grid-template-columns:1fr}}
+.mode{border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;background:var(--surface);
+  display:flex;flex-direction:column;gap:4px;text-align:left;cursor:pointer;box-shadow:var(--shadow)}
+.mode:hover:not([disabled]){border-color:var(--line2)}
+.mode[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.mode[disabled]{opacity:.55;cursor:default}
+.mode .mn{font-size:14px;font-weight:600}
+.mode .mt{font-family:"IBM Plex Mono",monospace;font-size:26px;font-weight:500;line-height:1.15}
+.mode .ms{font-size:var(--fs-sm);color:var(--ink2)}
+.mode .mx{font-size:var(--fs-xs);color:var(--ink3)}
+
+/* ==========================================================================
+   5. ไทม์ไลน์ / ตาราง
+   ========================================================================== */
+.tl{list-style:none;margin:0;padding:2px 0 0}
+.tl li{display:grid;grid-template-columns:58px 28px minmax(0,1fr);gap:0 12px;
+  align-items:start;position:relative;padding-bottom:16px}
+.tl .clock{font-family:"IBM Plex Mono",monospace;font-size:14px;color:var(--ink2);
+  text-align:right;padding-top:1px}
+.tl .clock.dim{color:var(--ink3)}
+.tl .rail{position:relative;justify-self:center;width:28px;align-self:stretch}
+.tl .rail i{position:absolute;left:12px;top:0;bottom:-16px;width:4px;border-radius:2px;background:var(--line2)}
+.tl li:last-child .rail i{display:none}
+.tl .rail b{position:absolute;left:8px;top:4px;width:13px;height:13px;border-radius:50%;
+  background:var(--surface);border:2.5px solid var(--line2);box-sizing:border-box}
+.tl .rail b.xf{width:15px;height:15px;left:7px;border-width:3px}
+.tl .ttl{font-size:var(--fs-body);font-weight:500}
+.tl .sub{font-size:var(--fs-sm);color:var(--ink2)}
+.tl .dur{font-family:"IBM Plex Mono",monospace;font-size:var(--fs-xs);color:var(--ink3)}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-xs);font-weight:600;
+  padding:2px 8px;border-radius:6px;color:#fff;vertical-align:1px}
+
+.brk{list-style:none;margin:0;padding:0}
+.brk li{display:flex;align-items:baseline;gap:12px;padding:10px 0;border-top:1px solid var(--line);
+  font-size:var(--fs-body)}
+.brk li:first-child{border-top:0;padding-top:0}
+.brk .n{flex:1;color:var(--ink2)}
+.brk .v{font-family:"IBM Plex Mono",monospace;white-space:nowrap;font-weight:500}
+.brk li.sum{border-top:1px solid var(--line2);font-weight:600}
+.brk li.sum .n{color:var(--ink)}
+.note{font-size:var(--fs-sm);color:var(--ink2);margin:0}
+
+.tips{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.tips li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;font-size:var(--fs-body);align-items:baseline}
+.tips .mk{font-family:"IBM Plex Mono",monospace;font-size:var(--fs-xs);color:var(--ink3);
+  border:1px solid var(--line);border-radius:5px;padding:1px 6px;white-space:nowrap}
+
+/* ---------- แผนที่ ---------- */
+.mapwrap{background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;align-self:start}
+.maphead{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+  padding:var(--pad) var(--pad) 12px;flex-wrap:wrap}
+.maphead .maphint{margin:0}
+.maphead h3{font-size:var(--fs-sect)}
+.maphint{font-size:var(--fs-xs);color:var(--ink3)}
+/* ต้องเจาะจง #mapHost เท่านั้น — ถ้าเขียนเป็น .mapwrap svg จะไปโดน svg ที่ Leaflet สร้างเองด้วย
+   (ทั้งธงเล็ก ๆ ใน attribution และชั้นวาดเส้นทาง) แล้วมันจะถูกยืดเต็มความกว้างการ์ด */
+#mapHost svg{display:block;width:100%;height:auto;max-width:100%;cursor:crosshair}
+#mapLive svg{width:auto;height:auto;max-width:none}
+.maptabs{margin:0 var(--pad) 12px}
+.gmlink{font-size:var(--fs-sm);color:var(--accent2);text-decoration:none;white-space:nowrap}
+.gmlink:hover{text-decoration:underline}
+#mapLive{height:clamp(340px,46vh,600px);width:100%;background:var(--surface2);z-index:0}
+#mapLive.dark .leaflet-control-attribution,
+#mapLive.dark .leaflet-bar a{background:var(--surface);color:var(--ink2)}
+#mapLive.dark .leaflet-control-attribution a{color:var(--ink2)}
+#mapLive .leaflet-control-attribution{font-size:11px}
+.mapwrap .maphint{margin:10px var(--pad) 0;display:block}
+.mapwrap .maphint:empty{display:none}
+.maplegend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:12px var(--pad);border-top:1px solid var(--line);
+  background:var(--surface2);font-size:var(--fs-xs);color:var(--ink2)}
+.maplegend span{display:inline-flex;align-items:center;gap:6px}
+.maplegend i{width:16px;height:4px;border-radius:2px;display:inline-block}
+
+/* ---------- แผนทั้งวัน ---------- */
+.dp{display:flex;flex-direction:column;gap:12px}
+.dprow{display:grid;grid-template-columns:minmax(0,1fr) 150px 118px 44px;gap:12px;align-items:end}
+@media (max-width:820px){.dprow{grid-template-columns:minmax(0,1fr) 1fr}}
+.dprow .rm{background:none;border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer;
+  color:var(--ink3);height:var(--ctl-h);font-size:18px}
+.dprow .rm:hover{color:var(--accent);border-color:var(--line2)}
+.chain{list-style:none;margin:0;padding:0}
+.chain li{display:grid;grid-template-columns:130px minmax(0,1fr);gap:16px;padding:14px 0;
+  border-top:1px solid var(--line);align-items:start}
+.chain li:first-child{border-top:0;padding-top:0}
+@media (max-width:640px){.chain li{grid-template-columns:1fr;gap:4px}}
+.chain .when{font-family:"IBM Plex Mono",monospace;font-size:14px;color:var(--ink2)}
+.chain .what .h{font-weight:600;font-size:var(--fs-body)}
+.chain .what .d{font-size:var(--fs-sm);color:var(--ink2)}
+.conflict{background:var(--accent-soft);border-left:3px solid var(--accent);padding:10px 14px;
+  border-radius:0 8px 8px 0;font-size:var(--fs-sm);margin-top:8px}
+.okline{background:var(--ok-soft);border-left:3px solid var(--ok);padding:10px 14px;
+  border-radius:0 8px 8px 0;font-size:var(--fs-sm);margin-top:8px;color:var(--ok)}
+
+.foot{margin-top:12px;padding-top:18px;border-top:1px solid var(--line);
+  font-size:var(--fs-xs);color:var(--ink3);display:flex;flex-wrap:wrap;gap:6px 24px}
+.err{background:var(--warn-soft);color:var(--warn);border-radius:var(--r);padding:16px 18px;
+  font-size:var(--fs-body)}
+.hide{display:none!important}
+
+/* ==========================================================================
+   6. กล่องเข้าสู่ระบบ (โหมดสาธิต)
+   ========================================================================== */
+.modalback{position:fixed;inset:0;z-index:200;padding:20px;overflow:auto;
+  background:rgba(8,10,14,.55);display:grid;place-items:center}
+.modal{position:relative;width:min(430px,100%);background:var(--surface);
+  border:1px solid var(--line);border-radius:16px;padding:30px 26px 20px;
+  box-shadow:0 30px 70px -24px rgba(0,0,0,.6);
+  display:flex;flex-direction:column;gap:11px;animation:pop .16s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.985)}to{opacity:1;transform:none}}
+.modalx{position:absolute;right:12px;top:9px;background:none;border:0;font-size:24px;
+  line-height:1;color:var(--ink3);cursor:pointer;padding:3px 7px}
+.modalx:hover{color:var(--ink)}
+.modal h2{font-size:22px}
+.modalsub{margin:0 0 6px;color:var(--ink2);font-size:var(--fs-body)}
+.oauth{display:flex;align-items:center;justify-content:center;gap:11px;width:100%;
+  background:var(--surface);border:1px solid var(--line2);border-radius:10px;
+  min-height:48px;padding:10px 16px;font-size:15px;font-weight:500;cursor:pointer;color:var(--ink)}
+.oauth:hover{background:var(--surface2)}
+.oauth svg{flex:none}
+.demonote{margin:10px 0 0;font-size:var(--fs-sm);line-height:1.55;color:var(--warn);
+  background:var(--warn-soft);padding:11px 13px;border-radius:9px}
+.terms{margin:0;font-size:var(--fs-xs);color:var(--ink3);text-align:center;line-height:1.5}
