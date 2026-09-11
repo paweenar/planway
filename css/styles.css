@@ -606,3 +606,27 @@ body.tab-hist .cols{grid-template-columns:minmax(0,1fr)}
 /* เวลาเดินทางเป็นคอลัมน์ตัวเลขชิดขวา อ่านเทียบกันได้ทั้งคอลัมน์ */
 .hdur{font-size:var(--fs-body);font-weight:600;text-align:right;white-space:nowrap;color:var(--ink)}
 .hdur .du{font-family:inherit;font-size:var(--fs-xs);color:var(--ink3);font-weight:400}
+
+/* ---- นอกเวลาให้บริการ ---- */
+.mode.shut{opacity:.72}
+.mode .mx.warn{color:var(--warn);font-weight:600}
+
+/* ---- การ์ด "จากประวัติของคุณ" ---- */
+#learnCard .panel-b{gap:9px}
+.lnroute{margin:0;font-size:var(--fs-sm);color:var(--ink2);line-height:1.55}
+.lnsay{margin:0;font-size:var(--fs-body);line-height:1.55}
+#learnApply{align-self:flex-start}
+
+/* ---- ปุ่มบอกผลจริงในแถวประวัติ ---- */
+.hout{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px}
+.hout .olbl{font-size:var(--fs-xs);color:var(--ink3)}
+.obtn{background:var(--surface);border:1px solid var(--line);border-radius:20px;
+  padding:3px 11px;font-size:var(--fs-xs);cursor:pointer;color:var(--ink2);min-height:26px}
+.obtn:hover{border-color:var(--line2);color:var(--ink)}
+.obtn.on{font-weight:600;border-color:transparent}
+.obtn.on.early{background:var(--surface3);color:var(--ink)}
+.obtn.on.ok{background:var(--ok-soft);color:var(--ok)}
+.obtn.on.late{background:var(--warn-soft);color:var(--warn)}
+
+/* ปุ่มจัดการประวัติบนหัวการ์ด — จอแคบให้ตกบรรทัดแทนที่จะบีบหัวข้อจนหาย */
+.histacts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}

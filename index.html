@@ -204,6 +204,15 @@
         </section>
 
         <div class="side2 wg-side">
+          <!-- โผล่เฉพาะตอนมีอะไรจะบอกจริง ๆ ไม่งั้นซ่อนทั้งการ์ด (ดู renderLearn ใน app.js) -->
+          <section class="panel hide" id="learnCard">
+            <div class="panel-h"><h3 data-i18n="learn.title"></h3></div>
+            <div class="panel-b">
+              <p class="lnroute" id="learnRoute"></p>
+              <p class="lnsay" id="learnSay"></p>
+              <button class="ghost sm" id="learnApply" data-i18n="learn.apply"></button>
+            </div>
+          </section>
           <section class="panel">
             <div class="panel-h"><h3 data-i18n="panel.breakdown"></h3></div>
             <div class="panel-b"><ul class="brk" id="breakdown"></ul></div>
@@ -259,7 +268,12 @@
         <section class="panel">
           <div class="panel-h">
             <h3 data-i18n="hist.list"></h3>
-            <button class="ghost sm" id="histClearBtn" data-i18n="hist.clear"></button>
+            <div class="histacts">
+              <button class="ghost sm" id="histExportBtn" data-i18n="hist.export"></button>
+              <button class="ghost sm" id="histImportBtn" data-i18n="hist.import"></button>
+              <input type="file" id="histFile" accept="application/json,.json" hidden>
+              <button class="ghost sm" id="histClearBtn" data-i18n="hist.clear"></button>
+            </div>
           </div>
           <div class="panel-b"><div id="histList"></div></div>
         </section>

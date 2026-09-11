@@ -87,13 +87,22 @@ function compute(){
     if(nb===b) break; b=nb;
   }
   const fallback=!plans[S.mode];
-  const p=plans[S.mode]||plans.drive;
-  const buffer=Z[S.conf]*p.sd;
-  const travel=p.mean+buffer;
+  let p=plans[S.mode]||plans.drive, mode=fallback?"drive":S.mode;
+  let buffer=Z[S.conf]*p.sd, travel=p.mean+buffer;
+
+  /* เวลาให้บริการ — ถ้าต้องขึ้นรถตอนที่สายนั้นปิดแล้ว แผนนี้ใช้ไม่ได้จริง
+     ถอยไปแผนขับรถซึ่งใช้ได้ตลอด 24 ชม. แล้วบอกผู้ใช้ให้ชัดว่าเพราะอะไร
+     ต้องเช็คหลังได้ leave แล้ว เพราะเวลาออกจากบ้านขึ้นกับแผนที่เลือก */
+  let svcClosed=null;
+  const issues=svcCheck(p,target-travel);
+  if(issues.length && plans.drive){
+    svcClosed={was:mode,issues};
+    p=plans.drive; mode="drive";
+    buffer=Z[S.conf]*p.sd; travel=p.mean+buffer;
+  }
   const prep=prepTotal();
   return {A,B,b,plans,plan:p,buffer,travel,leave:target-travel,
-          prepStart:target-travel-prep,prep,target,
-          mode:fallback?"drive":S.mode,fallback};
+          prepStart:target-travel-prep,prep,target,mode,fallback,svcClosed};
 }
 
 /* =======================================================================
@@ -289,6 +298,11 @@ function renderTips(r){
     tips.push([t("mk.cost"),t("tip.cost",{f:r.plan.fare})]);
     tips.push([t("mk.reliab"),t("tip.reliab",{n:Math.round(r.buffer)})]);
   }
+  if(r.svcClosed){
+    const i=r.svcClosed.issues[0];
+    tips.push([t("mk.closed"), t(i.kind==="before"?"tip.closedBefore":"tip.closedAfter",
+      {line:lname(i.line), at:hhmm(i.at), t:hhmm(i.kind==="before"?i.first:i.last)})]);
+  }
   if(RAIN) tips.push([t("mk.rain"),t("tip.rain")]);
   if(r.prepStart<5*60+30) tips.push([t("mk.early"),t("tip.early",{t:hhmm(r.prepStart)})]);
   if(r.leave<r.prepStart) tips.push([t("mk.check"),t("tip.check")]);
@@ -312,9 +326,16 @@ function renderModes(r){
       const tt=r.target-(p.mean+Z[S.conf]*p.sd);
       b.appendChild(el("div","mt mono",hhmm(tt)));
       b.appendChild(el("div","ms",t("mode.sub",{a:Math.round(p.mean),b:Math.round(p.mean+Z[S.conf]*p.sd)})));
-      b.appendChild(el("div","mx", k==="drive"
-        ? t("mode.kmfare",{km:Math.round(p.km),f:p.fare})
-        : t("mode.xfare",{n:p.xfers,f:p.fare})));
+      /* แต่ละแผนออกจากบ้านคนละเวลา จึงต้องเช็คเวลาให้บริการด้วยเวลาของแผนนั้นเอง */
+      const shut=svcCheck(p,tt);
+      if(shut.length){
+        b.appendChild(el("div","mx warn",t("mode.closed",{tag:ltag(shut[0].line)})));
+        b.classList.add("shut");
+      } else {
+        b.appendChild(el("div","mx", k==="drive"
+          ? t("mode.kmfare",{km:Math.round(p.km),f:p.fare})
+          : t("mode.xfare",{n:p.xfers,f:p.fare})));
+      }
       b.onclick=()=>{S.mode=k; save(); draw();};
     }
     host.appendChild(b);
@@ -745,7 +766,7 @@ function draw(){
     $("#tPrep").textContent=$("#tLeave").textContent=$("#tArrive").textContent="—";
     $("#sPrep").textContent=$("#sLeave").textContent=$("#sArrive").textContent="—";
     $("#vbar").innerHTML=""; $("#timeline").innerHTML=""; $("#breakdown").innerHTML="";
-    $("#tips").innerHTML=""; $("#modes").innerHTML=""; renderMapCard(null); return;
+    $("#tips").innerHTML=""; $("#modes").innerHTML=""; renderMapCard(null); renderLearn(null); return;
   }
   err.classList.add("hide");
 
@@ -767,10 +788,11 @@ function draw(){
   add(t("pill.fare",{n:r.plan.fare}));
   add(t("band."+r.b), r.b===0?"warn":"");
   if(RAIN) add(t("pill.rain"),"warn");
+  if(r.svcClosed) add(t("pill.closed"),"warn");
   if(r.fallback) add(t("pill.fallback"),"warn");
 
   renderModes(r); renderTimeline(r); renderBreakdown(r); renderTips(r); renderMapCard(r);
-  histTouch(r);
+  renderLearn(r); histTouch(r);
 }
 
 /* =======================================================================
@@ -996,6 +1018,20 @@ function renderHistory(){
     if((h.n||1)>1) meta.appendChild(el("span","rep",t("hist.times",{n:h.n})));
     rt.appendChild(meta);
 
+    /* ผลจริง — ระบบมองไม่เห็นว่าผู้ใช้ถึงที่หมายกี่โมง ต้องให้กดบอกเอง
+       ถามเฉพาะทริปที่ผ่านไปแล้ว ทริปวันพรุ่งนี้ยังไม่มีผลให้ตอบ */
+    if(h.date<=wxToday()){
+      const out=el("div","hout");
+      out.appendChild(el("span","olbl",t("hist.out")));
+      for(const v of HIST_OUTCOMES){
+        const ob=el("button","obtn"+(h.out===v?" on "+v:""),t("hist.out."+v));
+        ob.type="button";
+        ob.onclick=()=>{ histOutcome(h.id,v); renderHistory(); renderLearn(LAST); };
+        out.appendChild(ob);
+      }
+      rt.appendChild(out);
+    }
+
     const acts=el("div","hacts");
     const again=el("button","hbtn",t("hist.again")); again.type="button";
     again.onclick=()=>histLoadInto(h);
@@ -1012,6 +1048,76 @@ function renderHistory(){
     row.append(tm,rt,dur,acts);
     host.appendChild(row);
   }
+}
+
+/* ---------- การ์ด "จากประวัติของคุณ" ----------
+   สองเรื่องในการ์ดเดียว: เส้นทางนี้เคยใช้เวลาเท่าไร และควรปรับเวลาเผื่อไหม
+   ถ้ายังไม่มีข้อมูลพอ จะบอกว่าต้องทำอะไรถึงจะได้ ไม่ใช่เงียบไปเฉย ๆ */
+
+/* ช่องเผื่อเวลาเป็น select ที่มีค่าให้เลือกเป็นขั้น จะบวกดิบ ๆ ไม่ได้
+   ต้องเลื่อนไปขั้นถัดไปที่มีจริงในทิศที่ต้องการ ถ้าสุดขั้นแล้วก็ไม่เสนอ */
+const CUSHIONS=[0,5,10,15,30];
+function cushionStep(delta){
+  const cand=CUSHIONS.filter(c => delta>0 ? c>S.cushion : c<S.cushion);
+  if(!cand.length) return null;
+  const target=S.cushion+delta;
+  return cand.reduce((a,c) => Math.abs(c-target)<Math.abs(a-target) ? c : a);
+}
+
+let learnMsg=null;        /* ข้อความยืนยันหลังกดปรับ ค้างไว้ครู่หนึ่งแล้วกลับไปคำแนะนำปกติ */
+
+function renderLearn(r){
+  const card=$("#learnCard"), rt=$("#learnRoute"), say=$("#learnSay"), btn=$("#learnApply");
+  const stats=(r&&!r.err)?histRouteStats(r.A.name,r.B.name):null;
+  const adv=histAdvice();
+
+  if(stats) rt.textContent = stats.trips>1
+    ? t("learn.route",{n:stats.trips,a:stats.min,b:stats.max})
+    : t("learn.routeOne",{a:stats.avg});
+  rt.classList.toggle("hide",!stats);
+
+  let msg="";
+  if(learnMsg)                    msg=learnMsg;
+  else if(adv.n<HIST_ADVICE_MIN)  msg=(adv.n||stats) ? t("learn.need",{n:adv.need}) : "";
+  else if(adv.delta>0)            msg=t("learn.late",{n:adv.n,k:adv.late,d:adv.delta});
+  else if(adv.delta<0)            msg=t("learn.early",{n:adv.n,k:adv.early,d:-adv.delta});
+  else                            msg=t("learn.ok",{n:adv.n});
+
+  say.textContent=msg;
+  say.classList.toggle("hide",!msg);
+  btn.classList.toggle("hide", !!learnMsg || adv.delta===0 || cushionStep(adv.delta)===null);
+  card.classList.toggle("hide", !stats && !msg);
+}
+
+/* ---------- ส่งออก / นำเข้าประวัติ ---------- */
+function histToast(msg){
+  const b=$("#histImportBtn");
+  b.textContent=msg;
+  setTimeout(()=>{ b.textContent=t("hist.import"); },3200);
+}
+function histDownload(){
+  const blob=new Blob([histExport()],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="planway-history-"+wxToday()+".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+function histPickFile(ev){
+  const f=ev.target.files && ev.target.files[0];
+  ev.target.value="";                 /* เคลียร์ก่อน ไม่งั้นเลือกไฟล์เดิมซ้ำจะไม่ยิง change */
+  if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    let msg;
+    try{
+      const n=histImport(String(rd.result));
+      msg = n ? t("hist.imported",{n}) : t("hist.importNone");
+    }catch(e){ msg=t("hist.importBad"); }
+    histToast(msg); renderHistory(); renderLearn(LAST);
+  };
+  rd.onerror=()=>histToast(t("hist.importBad"));
+  rd.readAsText(f);
 }
 
 /* =======================================================================
@@ -1125,6 +1231,17 @@ $("#signOutBtn").onclick=()=>{
 };
 $("#authClose").onclick=()=>openAuth(false);
 $("#loginView").onclick=e=>{ if(!loginGated && e.target===$("#loginView")) openAuth(false); };
+$("#learnApply").onclick=()=>{
+  const v=cushionStep(histAdvice().delta);
+  if(v===null) return;
+  S.cushion=v; $("#cushion").value=String(v); save();
+  learnMsg=t("learn.applied",{n:v});
+  draw();
+  setTimeout(()=>{ learnMsg=null; renderLearn(LAST); },4000);
+};
+$("#histExportBtn").onclick=histDownload;
+$("#histImportBtn").onclick=()=>$("#histFile").click();
+$("#histFile").onchange=histPickFile;
 $("#histClearBtn").onclick=()=>{
   const n=histList().reduce((a,e)=>a+(e.n||1),0);
   if(!n || !confirm(t("hist.clearAsk",{n}))) return;

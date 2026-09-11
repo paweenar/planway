@@ -132,6 +132,37 @@ function segments(route,b){
    ======================================================================= */
 const Z={50:0,80:0.84,90:1.28,95:1.645};
 
+/* ---- เวลาให้บริการ ----
+   ก่อนหน้านี้เอนจินไม่รู้ว่ารถหยุดวิ่งกี่โมง นัดตีสองจึงถูกเสนอเส้นทาง BTS ที่ไม่มีอยู่จริง
+   svc ใน LINES เป็นเวลาเปิด-ปิดที่ผู้ให้บริการประกาศ ไม่ใช่ตารางเดินรถ จึงใช้ "เตือน" เท่านั้น */
+const svcOf = lid => (LINES[lid] && LINES[lid].svc) || [0, 1440];
+
+/* ปิดเที่ยงคืน (last = 1440) หมายถึงขบวนสุดท้ายออกก่อนเที่ยงคืน ไม่ใช่วิ่งข้ามคืน */
+function svcOpen(lid, min){
+  const [a, b] = svcOf(lid);
+  const m = ((Math.round(min) % 1440) + 1440) % 1440;
+  return b >= 1440 ? m >= a : (m >= a && m <= b);
+}
+
+/* เดินเวลาจากนาทีที่ออกจากบ้าน บวกทีละช่วงแบบเดียวกับที่ไทม์ไลน์วาด
+   แล้วดูว่าตอนถึงคิวขึ้นรถแต่ละขา สายนั้นยังเปิดอยู่ไหม
+   (ช่วง wait มาก่อน ride เสมอ เวลา ณ ขา ride จึงเป็นเวลาที่ขึ้นรถจริง) */
+function svcCheck(plan, leaveMin){
+  const out = [];
+  if (!plan || plan.kind === "drive") return out;
+  let tm = leaveMin;
+  for (const s of plan.segs){
+    if (s.t === "ride" && !svcOpen(s.line, tm)){
+      const [a, b] = svcOf(s.line);
+      const m = ((Math.round(tm) % 1440) + 1440) % 1440;
+      out.push({ line:s.line, at:tm, from:s.from, to:s.to,
+                 kind: m < a ? "before" : "after", first:a, last:b });
+    }
+    tm += (s.eff != null ? s.eff : s.min);
+  }
+  return out;
+}
+
 function fareOf(lid,hops){
   const [base,per,cap]=LINES[lid].fare;
   return Math.min(cap, base+per*Math.max(0,hops-1));

@@ -5,9 +5,9 @@ const read = f => fs.readFileSync(path.join(root, f), 'utf8');
 
 /* data.js + engine.js เป็นสคริปต์ธรรมดา (ไม่ใช่ ES module) เพื่อให้เปิด index.html
    จาก file:// ได้ตรงๆ  ที่นี่จึงรวมสองไฟล์แล้วดึงตัวแปรออกมาผ่าน new Function */
-const { LINES, NODES, PLACES, transitPlan, mixedPlan, drivePlan } =
+const { LINES, NODES, PLACES, transitPlan, mixedPlan, drivePlan, svcOpen, svcCheck } =
   new Function(read('js/data.js') + read('js/engine.js') +
-    ';return {LINES,NODES,PLACES,transitPlan,mixedPlan,drivePlan};')();
+    ';return {LINES,NODES,PLACES,transitPlan,mixedPlan,drivePlan,svcOpen,svcCheck};')();
 
 function P(name){
   const pl = PLACES.find(p => p[0] === name);
@@ -56,5 +56,37 @@ const none = transitPlan(P("อารีย์"), P("ตลาดไท"), 1, fa
 console.log(`${none===null?"✓":"✗"} ตลาดไท อยู่นอกโครงข่าย → คืนค่า null`);
 if (none !== null) fail++;
 
+
+/* ---- เวลาให้บริการ ---- */
+const svcCases = [
+  ["sukhumvit", 8*60,  true,  "BTS 08:00 เปิด"],
+  ["sukhumvit", 4*60,  false, "BTS 04:00 ยังไม่เปิด"],
+  ["sukhumvit", 5*60+20, true, "BTS 05:20 เปิดแล้ว (รอบแรก 05:15)"],
+  ["sukhumvit", 1*60,  false, "BTS 01:00 ปิดแล้ว"],
+  ["boat",      9*60,  true,  "เรือ 09:00 เปิด"],
+  ["boat",      20*60, false, "เรือ 20:00 เลิกวิ่งแล้ว"],
+];
+for (const [lid, min, want, label] of svcCases){
+  const got = svcOpen(lid, min);
+  const ok = got === want;
+  if (!ok) fail++;
+  console.log(`${ok?"✓":"✗"} ${label}`);
+}
+
+/* แผนที่ต้องขึ้นรถตอนตีสอง ต้องถูกจับได้ว่าใช้ไม่ได้จริง */
+const night = transitPlan(P("อารีย์"), P("อโศก"), 2, false);
+const nightIssues = svcCheck(night, 2*60);
+const nightOk = nightIssues.length > 0 && nightIssues[0].kind === "before";
+console.log(`${nightOk?"✓":"✗"} ออกจากบ้านตี 2 → svcCheck จับได้ว่ารถยังไม่วิ่ง (${nightIssues.length} ขา)`);
+if (!nightOk) fail++;
+
+const day = svcCheck(night, 9*60);
+console.log(`${day.length===0?"✓":"✗"} แผนเดียวกันตอน 09:00 → ไม่มีปัญหาเวลาให้บริการ`);
+if (day.length) fail++;
+
+/* ขับรถใช้ได้ตลอด 24 ชม. จึงต้องไม่มีข้อทักท้วงเลย */
+const drv = svcCheck(drivePlan(P("อารีย์"), P("อโศก"), 2, false), 2*60);
+console.log(`${drv.length===0?"✓":"✗"} แผนขับรถตอนตี 2 → ไม่ติดเวลาให้บริการ`);
+if (drv.length) fail++;
 console.log(fail ? `\n❌ ไม่ผ่าน ${fail} เคส` : "\n✅ ผ่านทั้งหมด");
 process.exit(fail ? 1 : 0);
