@@ -14,20 +14,24 @@ img,svg{max-width:100%}
 
 :root{
   /* ---- สี ---- */
-  --bg:#F4F6F8; --surface:#FFFFFF; --surface2:#EDF0F4; --surface3:#DFE4EA;
-  --ink:#121620; --ink2:#525C6B; --ink3:#7B8593;
-  --line:#DDE2E9; --line2:#C6CDD7;
+  --bg:#F7F9FC; --surface:#FFFFFF; --surface2:#F1F5F9; --surface3:#E2E8F0;
+  --ink:#172033; --ink2:#64748B; --ink3:#94A3B8;
+  --line:#E2E8F0; --line2:#CBD5E1;
+  /* --primary คือสีของการกระทำ (ปุ่มหลัก ลิงก์ สถานะที่เลือก) แยกจาก --accent
+     ซึ่งผู้ใช้เปลี่ยนสีเองได้ 6 ชุด — ปุ่ม "วางแผนเส้นทาง" ต้องเป็นสีเดียวเสมอทุกธีม */
+  --primary:#2563EB; --primary-600:#1D4ED8; --primary-soft:#EFF6FF;
   /* --accent / --accent2 / --accent-soft / --on-accent ถูกเซ็ตทับโดย js/prefs.js ตามธีมที่เลือก */
   --accent:#D9482A; --accent2:#AE3518; --accent-soft:#FBE7E1; --on-accent:#FFFFFF;
-  --ok:#12805A; --ok-soft:#DDF0E7; --warn:#9A6608; --warn-soft:#F8EED6;
-  --shadow:0 1px 2px rgba(18,22,32,.05), 0 6px 20px -14px rgba(18,22,32,.22);
-  --shadow-pop:0 2px 6px rgba(18,22,32,.06), 0 22px 48px -20px rgba(18,22,32,.4);
+  --ok:#16A34A; --ok-soft:#DCFCE7; --warn:#B45309; --warn-soft:#FEF3C7;
+  --danger:#DC2626;
+  --shadow:0 1px 1px rgba(18,22,32,.04), 0 2px 6px -2px rgba(18,22,32,.06), 0 12px 28px -18px rgba(18,22,32,.24);
+  --shadow-pop:0 2px 6px rgba(18,22,32,.06), 0 24px 54px -22px rgba(18,22,32,.42);
 
   /* ---- ระยะห่าง ---- */
   --gut:clamp(16px,2.1vw,56px);      /* ขอบซ้าย-ขวาของหน้า (จอยิ่งกว้างยิ่งเว้นมาก) */
   --gap:clamp(14px,1.35vw,22px);     /* ช่องไฟระหว่างการ์ด */
   --pad:clamp(16px,1.15vw,22px);     /* padding ในการ์ด */
-  --r:12px; --r-sm:9px;
+  --r:16px; --r-sm:11px;
 
   /* ---- ขนาดตัวอักษร ---- */
   --fs-title:clamp(21px,1.5vw,26px); /* ชื่อระบบบนหัวจอ */
@@ -35,6 +39,12 @@ img,svg{max-width:100%}
   --fs-body:15px;                    /* เนื้อความ */
   --fs-sm:13px;                      /* คำอธิบายรอง */
   --fs-xs:12px;                      /* metadata (ห้ามเล็กกว่านี้) */
+
+  /* ---- ระยะห่างตัวอักษรของป้ายกำกับตัวเล็ก ----
+     ภาษาไทยต้องเป็น 0 เสมอ: letter-spacing บวกจะดันวรรณยุกต์และสระบนออกจากพยัญชนะที่มันเกาะอยู่
+     "ต้นแบบ" จึงกลายเป็นอะไรที่อ่านไม่ออก ส่วนภาษาอังกฤษพิมพ์ใหญ่ยังต้องการการถ่างตามเดิม
+     (js/prefs.js เซ็ต lang บน <html> ให้ทุกครั้งที่เปลี่ยนภาษา) */
+  --track:0;
   --fs-kpi:clamp(30px,2.7vw,44px);   /* ตัวเลขใหญ่บนการ์ดสรุป */
 
   --ctl-h:42px;                      /* ความสูงมาตรฐานของ input/ปุ่ม */
@@ -44,34 +54,38 @@ img,svg{max-width:100%}
 /* โหมดมืด — ค่าเดียวกันสองที่ เพราะต้องรองรับทั้ง "ตามระบบ" และ "เลือกเอง" */
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#0E1116; --surface:#171B22; --surface2:#212630; --surface3:#2B313C;
-    --ink:#EEF1F6; --ink2:#9AA4B2; --ink3:#78828F;
-    --line:#2A303A; --line2:#3A414D;
+    --bg:#0B1120; --surface:#151C2C; --surface2:#1E2738; --surface3:#2A3447;
+    --ink:#E9EEF7; --ink2:#94A3B8; --ink3:#7C8798;
+    --line:#263044; --line2:#36425A;
+    --primary:#60A5FA; --primary-600:#3B82F6; --primary-soft:#17243D;
     --accent:#FF7A52; --accent2:#FF9878; --accent-soft:#33201B; --on-accent:#12151A;
-    --ok:#41C48D; --ok-soft:#163026; --warn:#E0A93C; --warn-soft:#2E2616;
-    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -16px rgba(0,0,0,.7);
-    --shadow-pop:0 2px 6px rgba(0,0,0,.5), 0 24px 52px -20px rgba(0,0,0,.8);
+    --ok:#4ADE80; --ok-soft:#14321F; --warn:#FBBF24; --warn-soft:#332611;
+    --danger:#F87171;
+    --shadow:0 1px 1px rgba(0,0,0,.3), 0 2px 8px -2px rgba(0,0,0,.45), 0 16px 34px -20px rgba(0,0,0,.75);
+    --shadow-pop:0 2px 6px rgba(0,0,0,.5), 0 28px 58px -22px rgba(0,0,0,.82);
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0E1116; --surface:#171B22; --surface2:#212630; --surface3:#2B313C;
-  --ink:#EEF1F6; --ink2:#9AA4B2; --ink3:#78828F;
-  --line:#2A303A; --line2:#3A414D;
+  --bg:#0B1120; --surface:#151C2C; --surface2:#1E2738; --surface3:#2A3447;
+  --ink:#E9EEF7; --ink2:#94A3B8; --ink3:#7C8798;
+  --line:#263044; --line2:#36425A;
+  --primary:#60A5FA; --primary-600:#3B82F6; --primary-soft:#17243D;
   --accent:#FF7A52; --accent2:#FF9878; --accent-soft:#33201B; --on-accent:#12151A;
-  --ok:#41C48D; --ok-soft:#163026; --warn:#E0A93C; --warn-soft:#2E2616;
-  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -16px rgba(0,0,0,.7);
-  --shadow-pop:0 2px 6px rgba(0,0,0,.5), 0 24px 52px -20px rgba(0,0,0,.8);
+  --ok:#4ADE80; --ok-soft:#14321F; --warn:#FBBF24; --warn-soft:#332611;
+  --danger:#F87171;
+  --shadow:0 1px 1px rgba(0,0,0,.3), 0 2px 8px -2px rgba(0,0,0,.45), 0 16px 34px -20px rgba(0,0,0,.75);
+  --shadow-pop:0 2px 6px rgba(0,0,0,.5), 0 28px 58px -22px rgba(0,0,0,.82);
   color-scheme:dark;
 }
 
 *{box-sizing:border-box}
 body{
   margin:0; background:var(--bg); color:var(--ink);
-  font-family:"Anuphan","Noto Sans Thai","Sarabun",system-ui,-apple-system,sans-serif;
+  font-family:"Sarabun",system-ui,-apple-system,"Segoe UI",sans-serif;
   font-size:var(--fs-body); line-height:1.55; -webkit-font-smoothing:antialiased;
 }
-html[lang="en"] body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+/* ฟอนต์เดียวทั้งสองภาษา — Sarabun ครอบคลุมทั้งไทยและละติน หน้าจึงไม่เปลี่ยนรูปตอนสลับภาษา */
 .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
 h1,h2,h3{margin:0;text-wrap:balance;font-weight:600;letter-spacing:-.01em}
 button,input,select{font:inherit;color:inherit}
@@ -85,27 +99,18 @@ button,input,select{font:inherit;color:inherit}
 .wrap{width:100%;max-width:none;margin:0 auto;padding-inline:var(--gut);padding-block:0 64px}
 
 /* ---------- app bar ---------- */
-.top{position:sticky;top:0;z-index:50;background:var(--bg);
-  margin-inline:calc(-1 * var(--gut));padding:14px var(--gut);margin-bottom:var(--gap);
-  min-height:72px;border-bottom:1px solid var(--line);
-  display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;
-  transition:padding .16s ease, box-shadow .16s ease, min-height .16s ease}
-/* เนื้อหาเลื่อนลอดใต้หัวจอเสมอ จึงต้องทำให้ดูเป็นแผ่นที่ลอยอยู่ข้างบนให้ชัด */
-.top.compact{min-height:60px;padding-block:9px;border-bottom-color:var(--line2);
-  box-shadow:0 6px 18px -8px rgba(0,0,0,.28)}
-:root[data-theme="dark"] .top.compact{box-shadow:0 6px 18px -6px rgba(0,0,0,.7)}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]) .top.compact{box-shadow:0 6px 18px -6px rgba(0,0,0,.7)}
-}
 .brand{display:flex;align-items:baseline;gap:12px;min-width:0}
 .brand h1{font-size:var(--fs-title);line-height:1.2;font-weight:700;letter-spacing:-.02em}
-.top.compact .brand h1{font-size:clamp(18px,1.2vw,21px)}
-.kicker{font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;
+.nav.compact .brand h1{font-size:clamp(18px,1.2vw,21px)}
+:root[lang="en"]{--track:.1em}   /* อังกฤษพิมพ์ใหญ่ถ่างได้ ไทยห้ามถ่าง (ดูหมายเหตุที่ --track) */
+/* line-height 1.7: overflow:hidden (ที่ ellipsis ต้องใช้) ตัดทุกอย่างที่ล้นกล่องบรรทัด
+   ถ้าบรรทัดเตี้ยไป วรรณยุกต์กับสระบนของไทยจะโดนตัดหัวไปด้วย */
+.kicker{font-size:var(--fs-xs);line-height:1.7;letter-spacing:var(--track);text-transform:uppercase;
   color:var(--ink3);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:1200px){.kicker{display:none}}
 .top-right{margin-left:auto;display:flex;align-items:center;gap:10px 12px;flex-wrap:wrap;justify-content:flex-end}
 .tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.eyebrow{font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.eyebrow{font-size:var(--fs-xs);letter-spacing:var(--track);text-transform:uppercase;color:var(--ink3);font-weight:600}
 
 .tabs{display:flex;gap:3px;background:var(--surface2);padding:4px;border-radius:10px}
 .tabs button{background:none;border:0;padding:8px 18px;border-radius:7px;cursor:pointer;
@@ -125,8 +130,22 @@ button,input,select{font:inherit;color:inherit}
 .icobtn:hover{border-color:var(--line2);color:var(--ink)}
 .caret{font-size:11px;opacity:.65}
 
+/* ข้อความที่มีไว้ให้โปรแกรมอ่านหน้าจออ่านอย่างเดียว ไม่ใช่ display:none เพราะแบบนั้นจะไม่ถูกอ่าน */
+.vis-hidden{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+  clip-path:inset(50%);white-space:nowrap;border:0}
+
+/* ปุ่มเมนู — โผล่เฉพาะจอที่แถบเครื่องมือเต็มแถวไม่ไหว */
+.navtoggle{display:none;margin-left:auto;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-sm);min-height:var(--ctl-h);width:var(--ctl-h);place-items:center;
+  cursor:pointer;color:var(--ink2)}
+.navtoggle:hover{border-color:var(--line2);color:var(--ink)}
+@media (max-width:899px){
+  .navtoggle{display:grid}
+  .top-right{display:none;width:100%;margin-left:0;justify-content:flex-start}
+  body.nav-open .top-right{display:flex}
+}
+
 @media (max-width:640px){
-  .top{min-height:0;padding-block:12px}
   .top-right{margin-left:0;width:100%;justify-content:flex-start;gap:9px}
   .tabs{flex:1}
   .tabs button{flex:1;padding-inline:8px}
@@ -152,7 +171,7 @@ button,input,select{font:inherit;color:inherit}
 .popitem:hover{background:var(--surface2)}
 .popitem[aria-checked="true"]{background:var(--accent-soft);color:var(--accent2);font-weight:600}
 .popitem.danger{color:var(--accent2);border-top:1px solid var(--line);border-radius:0 0 7px 7px;margin-top:4px}
-.popttl{font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.popttl{font-size:var(--fs-xs);letter-spacing:var(--track);text-transform:uppercase;color:var(--ink3);font-weight:600}
 .swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
 .sw{height:32px;border-radius:9px;border:2px solid transparent;cursor:pointer;padding:0;
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
@@ -173,61 +192,185 @@ button,input,select{font:inherit;color:inherit}
 .acctbtn .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ==========================================================================
-   2. โครงกริดของหน้า
+   2. โครงหน้า — Trip Planner
+      ลำดับสายตา: ค้นหา → คำตอบ (ออกจากบ้านกี่โมง) → เส้นทางที่เลือกได้ → แผนที่ + ไทม์ไลน์
+      Desktop ≥1200  ไทม์ไลน์ 40% | แผนที่ 60%   (แผนที่เป็นพระเอกของหน้า)
+      1024–1199      คอลัมน์เดียว แผนที่ลงมาอยู่ใต้ไทม์ไลน์
+      < 768          ทุกอย่างเรียงลงล่าง ช่องกรอกเต็มแถว
    ========================================================================== */
-.cols{display:grid;grid-template-columns:clamp(292px,21vw,340px) minmax(0,1fr);
-  gap:var(--gap);align-items:start}
-.colside{display:flex;flex-direction:column;gap:var(--gap)}
 
-/* พื้นที่ผลลัพธ์เป็นกริดเอง — #oneView ใช้ display:contents ให้ลูกของมันไปเป็นช่องในกริดนี้เลย
-   จะได้ไม่ต้องมี wrapper ซ้อนอีกชั้นซึ่งทำให้จัดคอลัมน์ไม่ได้ */
-.colmain{display:grid;gap:var(--gap);align-content:start;
-  grid-template-columns:minmax(0,1.06fr) minmax(0,.92fr) minmax(0,1.02fr)}
-#oneView{display:contents}
-.wg-full,#dayView,#histView,.foot{grid-column:1/-1}
-.wg-tl{grid-column:1}
-.wg-side{grid-column:2}
-.wg-map{grid-column:3}
-.side2{display:flex;flex-direction:column;gap:var(--gap)}
-#dayView,#histView{display:flex;flex-direction:column;gap:var(--gap)}
+/* ---------- หัวจอ ---------- */
+.nav{position:sticky;top:0;z-index:50;background:var(--surface);
+  margin-inline:calc(-1 * var(--gut));padding:10px var(--gut);
+  border-bottom:1px solid var(--line);
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;
+  transition:box-shadow .18s ease}
+.nav.compact{box-shadow:0 1px 12px -6px rgba(15,23,42,.35)}
+:root[data-theme="dark"] .nav.compact{box-shadow:0 1px 14px -6px rgba(0,0,0,.8)}
+
+/* ---------- ส่วนค้นหา ---------- */
+.hero{margin:var(--gap) 0;padding:clamp(18px,2.2vw,30px) clamp(16px,2vw,28px);
+  border:1px solid var(--line);border-radius:var(--r);
+  background:linear-gradient(160deg,var(--primary-soft),var(--surface) 72%)}
+.herotxt h2{font-size:clamp(21px,2vw,28px);font-weight:700;letter-spacing:-.02em;color:var(--ink)}
+.herotxt p{margin:3px 0 0;font-size:var(--fs-body);color:var(--ink2)}
+
+.sbox{margin-top:16px;display:flex;flex-direction:column;gap:12px}
+.splaces{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:end}
+.stimes{display:grid;gap:10px;align-items:end;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.2fr) minmax(0,1fr) auto}
+
+.sfield{display:flex;flex-direction:column;gap:5px;min-width:0;position:relative;
+  font-size:var(--fs-sm);color:var(--ink2);font-weight:500}
+.sfield>span{white-space:nowrap}
+.sfield .sicon{position:absolute;left:11px;bottom:12px;width:16px;height:16px;color:var(--ink3);
+  pointer-events:none}
+.sfield:focus-within .sicon{color:var(--primary)}
+.acwrap.sfield input{padding-left:34px}
+
+.hero .swapbtn{width:var(--ctl-h);height:var(--ctl-h);padding:0;display:grid;place-items:center;
+  border-radius:50%;background:var(--surface);color:var(--ink2);flex:none}
+.hero .swapbtn:hover{background:var(--primary-soft);border-color:var(--primary);color:var(--primary)}
+
+.whenseg{width:100%}
+.whenseg button{flex:1}
+
+.primary{min-height:var(--ctl-h);padding:0 24px;border:0;border-radius:var(--r-sm);
+  background:var(--primary);color:#fff;font-size:15px;font-weight:600;cursor:pointer;
+  font-family:inherit;white-space:nowrap;
+  transition:background .18s ease, box-shadow .18s ease, transform .18s ease}
+.primary:hover{background:var(--primary-600);box-shadow:0 8px 18px -10px var(--primary)}
+.primary:active{transform:translateY(1px)}
+
+@media (max-width:1023px){
+  .stimes{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .stimes .primary{grid-column:1/-1}
+}
+@media (max-width:640px){
+  .splaces{grid-template-columns:1fr;gap:8px}
+  .hero .swapbtn{justify-self:end;margin:-2px 0}
+  .stimes{grid-template-columns:1fr}
+}
+
+/* ---------- เนื้อหา ---------- */
+.page{display:block}
+#oneView,#dayView,#histView{display:flex;flex-direction:column;gap:var(--gap)}
+.secttl{font-size:clamp(17px,1.4vw,20px);font-weight:600;color:var(--ink);margin-bottom:10px}
+.routes{display:block}
 .block{display:flex;flex-direction:column;gap:10px}
 .blockh{font-size:var(--fs-sect);font-weight:600;color:var(--ink)}
 
-/* Laptop — ผลลัพธ์เหลือ 2 คอลัมน์ แผนที่ลงมาเต็มความกว้างข้างล่าง */
-@media (max-width:1439px){
-  .colmain{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)}
-  .wg-map{grid-column:1/-1}
+.split{display:grid;gap:var(--gap);align-items:start;
+  grid-template-columns:minmax(0,40fr) minmax(0,60fr)}
+.sleft,.sright{display:flex;flex-direction:column;gap:var(--gap);min-width:0}
+.botrow{display:flex;flex-direction:column;gap:var(--gap)}
+@media (max-width:1199px){
+  .split{grid-template-columns:1fr}
+  .sright{order:2}                       /* มือถือ/แท็บเล็ต: ไทม์ไลน์ก่อน แผนที่ตามลงมา */
 }
-/* Tablet — คอลัมน์เดียว แต่แผงตั้งค่ากับการ์ดรองจับคู่กันเป็น 2 ช่อง ไม่ยืดเต็มจอจนดูโหว่ */
-@media (max-width:1023px){
-  .cols{grid-template-columns:1fr}
-  .colmain{grid-template-columns:1fr}
-  .wg-tl,.wg-side,.wg-map{grid-column:1/-1}
-  .colside{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
-  .colside>.wxpanel{grid-column:1/-1;order:1}
-  .side2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+
+/* ---------- คำตอบหลัก ---------- */
+.answer{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
+  border-radius:var(--r);overflow:hidden;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+.ansmain{background:var(--primary-soft);padding:18px 22px 20px;display:flex;flex-direction:column;gap:2px}
+.ansmain .k{font-size:var(--fs-sm);font-weight:600;color:var(--primary)}
+.ansmain .t{font-size:clamp(38px,4.4vw,56px);line-height:1.02;font-weight:700;color:var(--primary);
+  letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.ansmain .s{font-size:var(--fs-sm);color:var(--ink2)}
+.anssides{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line)}
+.ansside{background:var(--surface);padding:16px 18px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.ansside .k{font-size:var(--fs-xs);letter-spacing:var(--track);text-transform:uppercase;
+  color:var(--ink3);font-weight:600}
+.ansside .t{font-size:clamp(22px,2vw,28px);line-height:1.15;font-weight:600;color:var(--ink);
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.ansside .s{font-size:var(--fs-xs);color:var(--ink2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:767px){
+  .answer{grid-template-columns:1fr}
+  .ansmain{padding:16px 18px}
 }
-/* Mobile — ทุกอย่างคอลัมน์เดียว */
-@media (max-width:640px){
-  .colside,.side2{grid-template-columns:1fr}
+
+/* ---------- แถบสรุปเบา ๆ ---------- */
+.sumbar{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;
+  padding:2px 2px 0;color:var(--ink2);font-size:var(--fs-body)}
+.sumbar:empty{display:none}
+.sitem{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.sitem .ico{color:var(--ink3)}
+.ico{width:16px;height:16px;flex:none}
+
+/* ---------- ตัวเลือกเส้นทางแบบแถว ---------- */
+.modes{display:flex;flex-direction:column;gap:10px}
+.route{display:grid;gap:4px 14px;width:100%;text-align:left;cursor:pointer;font-family:inherit;
+  grid-template-columns:minmax(0,1fr) auto;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px 16px;color:var(--ink);
+  transition:border-color .18s ease, background .18s ease, box-shadow .18s ease}
+.route:hover:not([disabled]){border-color:var(--line2)}
+.route[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-soft);
+  box-shadow:inset 0 0 0 1px var(--primary)}
+.route[disabled]{opacity:.5;cursor:default}
+.rhead{grid-area:1/1;display:flex;align-items:center;gap:8px;min-width:0}
+.rname{font-size:var(--fs-sm);font-weight:600;color:var(--ink2)}
+.route[aria-pressed="true"] .rname{color:var(--primary)}
+.rbadge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;
+  background:var(--primary);color:#fff;letter-spacing:var(--track)}
+.rtime{grid-area:2/1;display:flex;align-items:baseline;gap:8px;font-variant-numeric:tabular-nums}
+.rtime b{font-size:clamp(20px,1.7vw,24px);font-weight:600;letter-spacing:-.02em}
+.rtime .arrow{color:var(--ink3)}
+.rtime span:last-child{font-size:16px;color:var(--ink2)}
+.rmeta{grid-area:3/1;display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+  font-size:var(--fs-sm);color:var(--ink2)}
+.rmeta .dot{color:var(--line2)}
+.ricons{grid-area:2/2;align-self:center;display:flex;align-items:center;gap:8px;color:var(--ink3)}
+.route[aria-pressed="true"] .ricons{color:var(--primary)}
+.rwarn{grid-area:4/1/4/3;font-size:var(--fs-xs);color:var(--warn);font-weight:500}
+.route.shut{border-style:dashed}
+@media (max-width:480px){
+  .ricons{grid-area:4/1;justify-content:flex-start}
+  .rwarn{grid-area:5/1/5/3}
 }
+
+/* ---------- ที่ซ่อนรายละเอียด ---------- */
+.more{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.more>summary{padding:13px var(--pad);font-size:var(--fs-sm);font-weight:600;color:var(--ink2);
+  cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}
+.more>summary::-webkit-details-marker{display:none}
+.more>summary::before{content:"";width:7px;height:7px;border-right:2px solid currentColor;
+  border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .18s ease}
+.more[open]>summary::before{transform:rotate(45deg)}
+.more>summary:hover{color:var(--ink)}
+.morebody{padding:0 var(--pad) var(--pad);display:flex;flex-direction:column;gap:18px}
+.sub{display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--line)}
+.sub h4{margin:0;font-size:var(--fs-sm);font-weight:600;color:var(--ink)}
+
+/* ---------- ประวัติล่าสุด ---------- */
+.recent{display:flex;flex-direction:column;gap:8px}
+.ritem{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;width:100%;text-align:left;
+  background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;
+  cursor:pointer;color:var(--ink);font-family:inherit;
+  transition:border-color .16s ease, background .16s ease}
+.ritem:hover{border-color:var(--primary);background:var(--primary-soft)}
+.ritem .rr{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ritem .rm{grid-column:1;font-size:var(--fs-xs);color:var(--ink3)}
+.ritem .rt{grid-row:1/3;align-self:center;font-size:var(--fs-xs);color:var(--ink2);white-space:nowrap}
 
 /* ==========================================================================
    3. การ์ด
    ========================================================================== */
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
-  box-shadow:var(--shadow)}
+  box-shadow:var(--shadow);transition:border-color .16s ease, box-shadow .16s ease}
 .panel-h{display:flex;align-items:center;justify-content:space-between;gap:10px;
   padding:var(--pad) var(--pad) 0}
-.panel-h h3{font-size:var(--fs-sect);letter-spacing:-.005em}
+.panel-h h3{font-size:var(--fs-sect);letter-spacing:-.005em;font-weight:650}
 .panel-b{padding:14px var(--pad) var(--pad);display:flex;flex-direction:column;gap:14px}
 
 label.f{display:flex;flex-direction:column;gap:6px;font-size:var(--fs-sm);color:var(--ink2);font-weight:500}
 input[type="text"],input[type="time"],input[type="number"],select{
   background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);
   min-height:var(--ctl-h);padding:9px 12px;font-size:15px;width:100%;min-width:0}
+input,select{transition:border-color .14s ease, box-shadow .14s ease}
 input:hover,select:hover{border-color:var(--line2)}
-input:focus,select:focus{border-color:var(--accent)}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .swapbtn{align-self:center;background:var(--surface2);border:1px solid var(--line);
   border-radius:8px;padding:5px 14px;font-size:var(--fs-sm);cursor:pointer;color:var(--ink2);width:fit-content}
@@ -248,6 +391,12 @@ input:focus,select:focus{border-color:var(--accent)}
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .acitem .ack{grid-area:1/2;font-size:var(--fs-xs);color:var(--ink3);align-self:center;white-space:nowrap}
 
+/* กำลังค้นหาสถานที่ออนไลน์ — จุดกะพริบเบา ๆ ไม่บังหน้า ไม่ล็อกการใช้งานส่วนอื่น */
+.errhint.busy{color:var(--ink3);font-size:var(--fs-sm)}
+.errhint.busy::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--primary);
+  animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.err .ghost.sm{align-self:flex-start;margin-top:10px}
 .errhint{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;font-size:var(--fs-sm)}
 .errchip{background:var(--surface);border:1px solid var(--line2);border-radius:999px;
   padding:5px 14px;font-size:var(--fs-sm);cursor:pointer;color:var(--ink)}
@@ -267,14 +416,45 @@ input:focus,select:focus{border-color:var(--accent)}
 .wxgeo{display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid var(--line);
   border-radius:999px;padding:6px 12px 6px 10px;font-size:var(--fs-sm);color:var(--ink2);cursor:pointer}
 .wxgeo:hover{border-color:var(--accent);color:var(--accent2)}
+.wxcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:var(--pad);display:flex;flex-direction:column;gap:14px}
+
+/* หัวการ์ด: ซ้ายคืออุณหภูมิตอนนี้กับค่าย่อย ขวาคือชื่อ วันเวลา และสภาพเป็นคำพูด */
+.wxtop{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:14px 20px}
+.wxside{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;min-width:0}
+.wxside h3{font-size:var(--fs-sect);font-weight:600}
+.wxwhen{font-size:var(--fs-sm);color:var(--ink2);font-variant-numeric:tabular-nums}
+.wxcond{font-size:var(--fs-sm);color:var(--ink2)}
+
+.wxunit{display:inline-flex;align-items:center;gap:3px;align-self:flex-start;padding-top:6px;
+  font-size:var(--fs-sm);color:var(--ink3)}
+.wxunit button{background:none;border:0;padding:1px 2px;cursor:pointer;color:var(--ink3);
+  font-family:inherit;font-size:var(--fs-sm);border-radius:4px;transition:color .16s ease}
+.wxunit button:hover{color:var(--ink)}
+.wxunit button[aria-pressed="true"]{color:var(--primary);font-weight:600}
+.wxunit .bar{color:var(--line2)}
+
+/* แท็บกราฟแบบขีดเส้นใต้ อ่านง่ายกว่าปุ่มกลุ่มเมื่อมีสามตัวเลือกและอยู่บนการ์ดกว้าง */
+.wxtabs{display:flex;gap:18px;border-bottom:1px solid var(--line);padding-bottom:0}
+.wxtabs button{background:none;border:0;padding:0 0 9px;cursor:pointer;font-family:inherit;
+  font-size:var(--fs-sm);font-weight:500;color:var(--ink3);position:relative;
+  transition:color .16s ease}
+.wxtabs button:hover{color:var(--ink2)}
+.wxtabs button[aria-pressed="true"]{color:var(--primary);font-weight:600}
+.wxtabs button[aria-pressed="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;
+  height:2px;border-radius:2px;background:var(--primary)}
+
+.wxfootrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+
 .wxplace{display:flex;align-items:center;gap:7px;font-size:var(--fs-sm);color:var(--ink2);min-width:0}
 .wxplace svg{flex:none;color:var(--accent)}
 .wxplace span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wxplace b{color:var(--ink);font-weight:600}
 
-.wxnow{display:flex;align-items:center;gap:14px;padding:2px 0}
+.wxnow{display:flex;align-items:center;gap:12px;padding:0;min-width:0;flex-wrap:wrap}
 .wxnow svg{flex:none}
-.wxnow-t{font-size:clamp(34px,2.4vw,42px);font-weight:500;line-height:1;letter-spacing:-.02em}
+.wxnow-t{font-size:clamp(44px,4vw,60px);font-weight:500;line-height:1;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums}
 .wxnow-t i{font-size:15px;font-style:normal;color:var(--ink3);vertical-align:11px;margin-left:2px}
 .wxnow-meta{display:flex;flex-direction:column;font-size:var(--fs-xs);color:var(--ink2);line-height:1.5;min-width:0}
 .wxnow-meta b{font-size:var(--fs-sm);color:var(--ink);font-weight:600}
@@ -284,17 +464,18 @@ input:focus,select:focus{border-color:var(--accent)}
 .wxchart{margin-bottom:-4px}
 .wxfoot{font-size:var(--fs-xs);color:var(--ink3);text-align:right}
 
-.wxdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
-.wxday{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 7px;
+.wxdays{display:grid;grid-template-columns:repeat(auto-fit,minmax(58px,1fr));gap:6px}
+.wxday{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 2px 9px;
   background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer;line-height:1.25}
 .wxday:hover{border-color:var(--line2)}
-.wxday[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);
-  box-shadow:inset 0 0 0 1px var(--accent)}
+.wxday[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-soft);
+  box-shadow:inset 0 0 0 1px var(--primary)}
 .wxday .wd{font-size:var(--fs-xs);font-weight:600;color:var(--ink2);white-space:nowrap}
-.wxday.today .wd,.wxday[aria-pressed="true"] .wd{color:var(--accent2)}
-.wxday .tt{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink2);font-weight:600}
-.wxday .pp{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink3)}
-.wxday .pp.wet{color:var(--wx-rain);font-weight:600}
+.wxday.today .wd,.wxday[aria-pressed="true"] .wd{color:var(--primary)}
+.wxday .tt{display:flex;flex-direction:column;align-items:center;gap:1px;
+  font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.wxday .tt b{font-size:13px;color:var(--ink);font-weight:600}
+.wxday .tt i{font-size:12px;color:var(--ink3);font-style:normal}
 
 /* ---------- รายการเตรียมตัว ---------- */
 .chk{display:flex;align-items:center;gap:11px;font-size:var(--fs-body);padding:8px 0;border-top:1px solid var(--line)}
@@ -320,29 +501,11 @@ input:focus,select:focus{border-color:var(--accent)}
 /* ==========================================================================
    4. การ์ดสรุป (KPI)
    ========================================================================== */
-.verdict{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
-  box-shadow:var(--shadow);overflow:hidden}
-.vgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
-.vcell{padding:20px 24px 22px;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
-.vcell:first-child{border-left:0}
-.vcell .k{font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:600}
-.vcell .t{font-family:"IBM Plex Mono",monospace;font-size:var(--fs-kpi);line-height:1.05;
-  font-weight:500;letter-spacing:-.025em}
-.vcell .s{font-size:var(--fs-sm);color:var(--ink2)}
-.vcell.hero{background:var(--accent-soft)}
-.vcell.hero .t{color:var(--accent2)}
-/* Tablet ลงมา: การ์ดหลักเต็มแถว อีกสองใบวางคู่กัน */
-@media (max-width:640px){
-  .vgrid{grid-template-columns:1fr 1fr}
-  .vcell{padding:14px 16px 16px}
-  .vcell.hero{grid-column:1/-1}
-  .vcell:nth-child(2){border-left:0;border-top:1px solid var(--line)}
-  .vcell:nth-child(3){border-top:1px solid var(--line)}
-}
-.vbar{display:flex;flex-wrap:wrap;gap:8px;padding:13px 24px;border-top:1px solid var(--line);
-  background:var(--surface2);align-items:center}
-@media (max-width:640px){.vbar{padding:11px 16px}}
+/* แถบชิปใต้สรุป — บอกเงื่อนไขที่ใช้คำนวณ (เวลาเดินทาง เผื่อไว้ ค่าโดยสาร ช่วงเวลา ฝน) */
+.vbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.vbar:empty{display:none}
 .pill{font-size:var(--fs-sm);padding:5px 12px;border-radius:999px;background:var(--surface);
+  transition:background .16s ease;
   border:1px solid var(--line);color:var(--ink2);white-space:nowrap}
 .pill.good{background:var(--ok-soft);border-color:transparent;color:var(--ok)}
 .pill.warn{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
@@ -352,10 +515,14 @@ input:focus,select:focus{border-color:var(--accent)}
 .modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--gap)}
 @media (max-width:640px){.modes{grid-template-columns:1fr}}
 .mode{border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;background:var(--surface);
-  display:flex;flex-direction:column;gap:4px;text-align:left;cursor:pointer;box-shadow:var(--shadow)}
-.mode:hover:not([disabled]){border-color:var(--line2)}
-.mode[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+  display:flex;flex-direction:column;gap:4px;text-align:left;cursor:pointer;box-shadow:var(--shadow);
+  transition:border-color .16s ease, background .16s ease, transform .16s ease}
+.mode:hover:not([disabled]){border-color:var(--line2);transform:translateY(-1px)}
 .mode[disabled]{opacity:.55;cursor:default}
+.mode:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.mode[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-soft);
+  box-shadow:var(--shadow), inset 0 0 0 1px var(--primary)}
+.mode[aria-pressed="true"] .mt{color:var(--primary)}
 .mode .mn{font-size:14px;font-weight:600}
 .mode .mt{font-family:"IBM Plex Mono",monospace;font-size:26px;font-weight:500;line-height:1.15}
 .mode .ms{font-size:var(--fs-sm);color:var(--ink2)}
@@ -365,18 +532,23 @@ input:focus,select:focus{border-color:var(--accent)}
    5. ไทม์ไลน์ / ตาราง
    ========================================================================== */
 .tl{list-style:none;margin:0;padding:2px 0 0}
-.tl li{display:grid;grid-template-columns:58px 28px minmax(0,1fr);gap:0 12px;
-  align-items:start;position:relative;padding-bottom:16px}
-.tl .clock{font-family:"IBM Plex Mono",monospace;font-size:14px;color:var(--ink2);
-  text-align:right;padding-top:1px}
+.tl li{display:grid;grid-template-columns:52px 30px minmax(0,1fr);gap:0 10px;
+  align-items:start;position:relative;padding-bottom:14px}
+.tl .clock{font-family:"IBM Plex Mono",monospace;font-size:13.5px;color:var(--ink2);
+  text-align:right;padding-top:5px;font-variant-numeric:tabular-nums}
 .tl .clock.dim{color:var(--ink3)}
 .tl .rail{position:relative;justify-self:center;width:28px;align-self:stretch}
-.tl .rail i{position:absolute;left:12px;top:0;bottom:-16px;width:4px;border-radius:2px;background:var(--line2)}
+.tl .rail i{position:absolute;left:14px;top:26px;bottom:-14px;width:2px;border-radius:2px;
+  background:var(--line);opacity:1}
 .tl li:last-child .rail i{display:none}
-.tl .rail b{position:absolute;left:8px;top:4px;width:13px;height:13px;border-radius:50%;
-  background:var(--surface);border:2.5px solid var(--line2);box-sizing:border-box}
-.tl .rail b.xf{width:15px;height:15px;left:7px;border-width:3px}
-.tl .ttl{font-size:var(--fs-body);font-weight:500}
+/* หมุดของแต่ละขาเป็นวงกลมที่มีไอคอนพาหนะอยู่ข้างใน อ่านรูปแบบการเดินทางได้โดยไม่ต้องอ่านตัวอักษร
+   สีขอบและสีไอคอนมาจากสีจริงของสายนั้น (ดู tlItem ใน src/app.ts) */
+.tl .rail b{position:absolute;left:3px;top:1px;width:24px;height:24px;border-radius:50%;
+  background:var(--surface);border:1.5px solid var(--line2);box-sizing:border-box;
+  display:grid;place-items:center;color:var(--ink3)}
+.tl .rail b .ico{width:13px;height:13px}
+.tl .rail b.xf{border-style:dashed}
+.tl .ttl{font-size:14.5px;font-weight:500;padding-top:3px}
 .tl .sub{font-size:var(--fs-sm);color:var(--ink2)}
 .tl .dur{font-family:"IBM Plex Mono",monospace;font-size:var(--fs-xs);color:var(--ink3)}
 .badge{display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-xs);font-weight:600;
@@ -400,7 +572,7 @@ input:focus,select:focus{border-color:var(--accent)}
 /* ---------- แผนที่ ---------- */
 .mapwrap{background:var(--surface);border:1px solid var(--line);
   border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;align-self:start}
-.maphead{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+.maphead{flex-wrap:wrap;display:flex;align-items:baseline;justify-content:space-between;gap:14px;
   padding:var(--pad) var(--pad) 12px;flex-wrap:wrap}
 .maphead .maphint{margin:0}
 .maphead h3{font-size:var(--fs-sect)}
@@ -412,7 +584,7 @@ input:focus,select:focus{border-color:var(--accent)}
 .maptabs{margin:0 var(--pad) 12px}
 .gmlink{font-size:var(--fs-sm);color:var(--accent2);text-decoration:none;white-space:nowrap}
 .gmlink:hover{text-decoration:underline}
-#mapLive{height:clamp(340px,46vh,600px);width:100%;background:var(--surface2);z-index:0}
+#mapLive{height:clamp(360px,52vh,640px);width:100%;background:var(--surface2);z-index:0}
 #mapLive.dark .leaflet-control-attribution,
 #mapLive.dark .leaflet-bar a{background:var(--surface);color:var(--ink2)}
 #mapLive.dark .leaflet-control-attribution a{color:var(--ink2)}
@@ -497,7 +669,7 @@ input:focus,select:focus{border-color:var(--accent)}
 .oauth svg{flex:none}
 /* เส้นคั่นคำว่า "หรือ" — ขีดสองข้างยืดเองด้วย flex ไม่ต้องคำนวณความกว้าง */
 .ordiv{display:flex;align-items:center;gap:12px;margin:5px 0;
-  font-size:var(--fs-xs);color:var(--ink3);text-transform:uppercase;letter-spacing:.08em}
+  font-size:var(--fs-xs);color:var(--ink3);text-transform:uppercase;letter-spacing:var(--track)}
 .ordiv::before,.ordiv::after{content:"";flex:1;height:1px;background:var(--line)}
 .guestbtn{width:100%;min-height:46px;background:none;border:1px dashed var(--line2);
   border-radius:10px;color:var(--ink2);font-size:var(--fs-body);font-weight:500;cursor:pointer}
@@ -533,7 +705,7 @@ input:focus,select:focus{border-color:var(--accent)}
 .hkpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--gap)}
 .hkpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
   padding:var(--pad);display:flex;flex-direction:column;gap:3px;box-shadow:var(--shadow)}
-.hkpi .k{font-size:var(--fs-xs);letter-spacing:.09em;text-transform:uppercase;
+.hkpi .k{font-size:var(--fs-xs);letter-spacing:var(--track);text-transform:uppercase;
   color:var(--ink3);font-weight:600}
 .hkpi .v{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
   font-size:clamp(24px,2.1vw,34px);line-height:1.1;font-weight:600;letter-spacing:-.02em}
@@ -553,7 +725,7 @@ input:focus,select:focus{border-color:var(--accent)}
   border-radius:20px;min-width:22px;padding:1px 7px;text-align:center;font-weight:600}
 
 /* รายการย้อนหลัง จัดกลุ่มตามวัน */
-.hday{font-size:var(--fs-xs);letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);
+.hday{font-size:var(--fs-xs);letter-spacing:var(--track);text-transform:uppercase;color:var(--ink3);
   font-weight:600;padding:15px 0 7px;border-bottom:1px solid var(--line);margin-bottom:6px}
 .hday:first-child{padding-top:0}
 .hrow{display:grid;grid-template-columns:78px minmax(0,1fr) auto auto;gap:14px;align-items:center;
@@ -600,8 +772,8 @@ input:focus,select:focus{border-color:var(--accent)}
 .hkpi .v.txt{font-family:inherit;font-size:clamp(21px,1.7vw,28px);letter-spacing:-.01em}
 
 /* แท็บประวัติกินเต็มความกว้าง ไม่ต้องมีแผงตั้งค่า */
-body.tab-hist .colside{display:none}
-body.tab-hist .cols{grid-template-columns:minmax(0,1fr)}
+/* แท็บประวัติกับแผนทั้งวันไม่ได้ใช้แถบค้นหาเส้นทางเดี่ยว ซ่อนไปให้เนื้อหาได้ความสูงเต็ม */
+body.tab-hist .hero,body.tab-day .hero{display:none}
 
 /* เวลาเดินทางเป็นคอลัมน์ตัวเลขชิดขวา อ่านเทียบกันได้ทั้งคอลัมน์ */
 .hdur{font-size:var(--fs-body);font-weight:600;text-align:right;white-space:nowrap;color:var(--ink)}

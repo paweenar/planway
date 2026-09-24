@@ -1,0 +1,16 @@
+{
+  "name": "planway",
+  "version": "1.0.0",
+  "private": true,
+  "description": "เว็บคำนวณเวลาออกจากบ้าน สำหรับโครงข่ายรถไฟฟ้ากรุงเทพฯ",
+  "scripts": {
+    "dev": "node dev.mjs",
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "tsc && node test/engine.test.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
