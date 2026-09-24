@@ -6,7 +6,12 @@
 <title>PlanWay</title>
 <meta name="description" content="คำนวณเวลาออกจากบ้านและเวลาเตรียมตัว จากเวลานัดและเส้นทางขนส่งสาธารณะกรุงเทพฯ">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<!-- อุ่นการเชื่อมต่อไว้ตั้งแต่ตอนอ่าน <head> — จับเวลาแล้ว DNS+TCP+TLS กินไป 0.63 วินาที
+     จาก 0.85 วินาทีของการดึงพยากรณ์ทั้งก้อน (ตัวข้อมูลเองแค่ 8.5 KB)
+     ทำตรงนี้ทำให้ handshake เกิดคู่ขนานกับการโหลดสคริปต์ แทนที่จะเริ่มหลังสคริปต์รันแล้ว -->
+<link rel="preconnect" href="https://api.open-meteo.com" crossorigin>
+<link rel="preconnect" href="https://api.bigdatacloud.net" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="css/styles.css">
 <!-- ธีม/ภาษา ต้องถูกทาก่อน paint แรก จึงโหลดแบบ blocking ตรงนี้ -->
@@ -14,13 +19,19 @@
 </head>
 <body>
 <div class="wrap">
-  <header class="top">
+  <header class="nav">
     <div class="brand">
       <h1 data-i18n="app.name"></h1>
       <span class="kicker" data-i18n="app.eyebrow"></span>
     </div>
 
-    <div class="top-right">
+    <button class="navtoggle" id="navToggle" aria-expanded="false" aria-controls="topRight" data-i18n-al="menu.more">
+      <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true">
+        <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="top-right" id="topRight">
       <div class="tabs" role="tablist">
         <button role="tab" id="tab-one" aria-selected="true" data-i18n="tab.one"></button>
         <button role="tab" id="tab-day" aria-selected="false" data-i18n="tab.day"></button>
@@ -28,7 +39,6 @@
       </div>
 
       <div class="tools">
-        <!-- ภาษา -->
         <div class="popwrap">
           <button class="icobtn" id="langBtn" aria-haspopup="menu" aria-expanded="false" data-i18n-al="menu.lang">
             <span id="langCur">ไทย</span><span class="caret">▾</span>
@@ -39,7 +49,6 @@
           </div>
         </div>
 
-        <!-- ธีม -->
         <div class="popwrap">
           <button class="icobtn" id="themeBtn" aria-haspopup="menu" aria-expanded="false" data-i18n-al="menu.theme">
             <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
@@ -61,7 +70,6 @@
 
         <button class="ghost" id="copyBtn" data-i18n="btn.copy"></button>
 
-        <!-- บัญชี -->
         <div class="popwrap">
           <button class="ghost solid" id="authBtn" aria-haspopup="dialog" aria-expanded="false"></button>
           <div class="pop hide" id="acctPop" role="menu">
@@ -80,31 +88,71 @@
     </div>
   </header>
 
-  <div class="cols">
-    <!-- ============ CONTROLS ============ -->
-    <div class="colside">
-      <section class="panel">
-        <div class="panel-h"><h3 data-i18n="panel.trip"></h3></div>
-        <div class="panel-b">
-          <label class="f acwrap" id="wrapOrigin"><span data-i18n="f.origin"></span>
+  <main class="page">
+    <!-- ============ ค้นหาเส้นทาง ============ -->
+    <section class="hero">
+      <div class="herotxt">
+        <h2 data-i18n="hero.title"></h2>
+        <p data-i18n="hero.sub"></p>
+      </div>
+
+      <div class="sbox">
+        <div class="splaces">
+          <label class="sfield acwrap" id="wrapOrigin">
+            <svg class="sicon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <circle cx="8" cy="8" r="3.4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            </svg>
+            <span data-i18n="f.origin"></span>
             <input type="text" id="origin" autocomplete="off" data-i18n-ph="ph.place">
           </label>
-          <button class="swapbtn" id="swap" data-i18n="btn.swap"></button>
-          <label class="f acwrap" id="wrapDest"><span data-i18n="f.dest"></span>
+
+          <button class="swapbtn" id="swap" data-i18n-al="btn.swap">
+            <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+              <path d="M4.5 2.5v9M4.5 2.5 2 5M4.5 2.5 7 5M11.5 13.5v-9M11.5 13.5 9 11M11.5 13.5 14 11"
+                    fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <label class="sfield acwrap" id="wrapDest">
+            <svg class="sicon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <path d="M8 14.5S2.8 9.9 2.8 6.6a5.2 5.2 0 0 1 10.4 0c0 3.3-5.2 7.9-5.2 7.9z"
+                    fill="none" stroke="currentColor" stroke-width="1.6"/>
+              <circle cx="8" cy="6.5" r="1.8" fill="currentColor"/>
+            </svg>
+            <span data-i18n="f.dest"></span>
             <input type="text" id="dest" autocomplete="off" data-i18n-ph="ph.place">
           </label>
-          <div class="row2">
-            <label class="f"><span data-i18n="f.arriveBy"></span>
-              <input type="time" id="arrive" value="09:00">
-            </label>
-            <label class="f"><span data-i18n="f.day"></span>
-              <select id="daytype">
-                <option value="wd" data-i18n="opt.wd"></option>
-                <option value="we" data-i18n="opt.we"></option>
-              </select>
-            </label>
+        </div>
+
+        <div class="stimes">
+          <label class="sfield">
+            <svg class="sicon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <rect x="2.2" y="3.2" width="11.6" height="10.6" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M2.2 6.4h11.6M5.5 1.8v2.6M10.5 1.8v2.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span data-i18n="f.date"></span>
+            <input type="date" id="tripDate">
+          </label>
+
+          <label class="sfield">
+            <svg class="sicon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M8 4.4V8l2.6 1.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span id="timeLabel" data-i18n="f.arriveBy"></span>
+            <input type="time" id="arrive" value="09:00">
+          </label>
+
+          <div class="sfield">
+            <span data-i18n="f.timeMode"></span>
+            <div class="segs whenseg" role="group" data-i18n-al="f.timeMode">
+              <button data-when="arrive" aria-pressed="true" data-i18n="when.arrive"></button>
+              <button data-when="depart" aria-pressed="false" data-i18n="when.depart"></button>
+            </div>
           </div>
-          <label class="f"><span data-i18n="f.cushion"></span>
+
+          <label class="sfield">
+            <span data-i18n="f.cushion"></span>
             <select id="cushion">
               <option value="0" data-i18n="cushion.0"></option>
               <option value="5" data-i18n="cushion.5"></option>
@@ -113,131 +161,156 @@
               <option value="30" data-i18n="cushion.30"></option>
             </select>
           </label>
+
+          <button class="primary" id="planBtn" data-i18n="btn.plan"></button>
+        </div>
+      </div>
+    </section>
+
+    <div id="oneView">
+      <div id="errBox" class="err hide"></div>
+
+      <!-- ============ คำตอบหลัก ============
+           คำถามที่เว็บนี้มีไว้ตอบคือ "ต้องออกจากบ้านกี่โมง" จึงเป็นบรรทัดเดียวที่ตัวใหญ่ที่สุด -->
+      <section class="answer" aria-live="polite">
+        <div class="ansmain">
+          <span class="k" data-i18n="v.leave"></span>
+          <span class="t mono" id="tLeave">—</span>
+          <span class="s" id="sLeave">—</span>
+        </div>
+        <div class="anssides">
+          <div class="ansside">
+            <span class="k" data-i18n="v.prep"></span>
+            <span class="t mono" id="tPrep">—</span>
+            <span class="s" id="sPrep">—</span>
+          </div>
+          <div class="ansside">
+            <span class="k" data-i18n="v.arrive"></span>
+            <span class="t mono" id="tArrive">—</span>
+            <span class="s" id="sArrive">—</span>
+          </div>
         </div>
       </section>
 
-      <section class="panel wxpanel">
-        <div class="panel-h">
-          <h3 data-i18n="wx.title"></h3>
-          <button class="wxgeo" id="wxGeo">
-            <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
-              <circle cx="8" cy="8" r="3" fill="currentColor"/>
-              <circle cx="8" cy="8" r="5.6" fill="none" stroke="currentColor" stroke-width="1.3"/>
-              <path d="M8 .8v2.2M8 13v2.2M.8 8h2.2M13 8h2.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-            </svg><span data-i18n="wx.useGps"></span>
-          </button>
+      <!-- แถบสรุปเบา ๆ: ใช้เวลา ค่าโดยสาร เปลี่ยนรถ เดิน -->
+      <div class="sumbar" id="sumBar"></div>
+      <div class="vbar" id="vbar"></div>
+
+      <!-- ============ ตัวเลือกเส้นทาง ============ -->
+      <section class="routes">
+        <h2 class="secttl" data-i18n="routes.title"></h2>
+        <div class="modes" id="modes"></div>
+      </section>
+
+      <!-- ============ ไทม์ไลน์ 40% | แผนที่ 60% ============ -->
+      <div class="split">
+        <div class="sleft">
+          <section class="panel">
+            <div class="panel-h"><h3 data-i18n="panel.timeline"></h3></div>
+            <div class="panel-b"><ul class="tl" id="timeline"></ul></div>
+          </section>
+
+          <details class="more">
+            <summary><span data-i18n="more.title"></span></summary>
+            <div class="morebody">
+              <section class="sub hide" id="learnCard">
+                <h4 data-i18n="learn.title"></h4>
+                <p class="lnroute" id="learnRoute"></p>
+                <p class="lnsay" id="learnSay"></p>
+                <button class="ghost sm" id="learnApply" data-i18n="learn.apply"></button>
+              </section>
+
+              <section class="sub">
+                <h4 data-i18n="panel.breakdown"></h4>
+                <ul class="brk" id="breakdown"></ul>
+              </section>
+
+              <section class="sub">
+                <h4 data-i18n="panel.tips"></h4>
+                <ul class="tips" id="tips"></ul>
+              </section>
+
+              <section class="sub">
+                <h4 data-i18n="panel.prep"></h4>
+                <div id="prepList"></div>
+                <div class="addrow">
+                  <input type="text" id="prepName" data-i18n-ph="ph.prepName" autocomplete="off">
+                  <input type="number" id="prepMin" value="10" min="0" max="240" data-i18n-al="unit.minShort">
+                  <button id="prepAdd" data-i18n="btn.add"></button>
+                </div>
+                <div class="tot"><span data-i18n="prep.total"></span><b><span id="prepTotal">0</span> <span id="prepUnit"></span></b></div>
+              </section>
+
+            </div>
+          </details>
         </div>
-        <div class="panel-b">
-          <div class="wxplace" id="wxPlace"></div>
 
-          <div class="wxnow" id="wxNow"></div>
+        <div class="sright">
+          <section class="mapwrap">
+            <div class="maphead">
+              <div class="segs maptabs" role="group" data-i18n-al="panel.map">
+                <button data-mapv="live" aria-pressed="true" data-i18n="map.live"></button>
+                <button data-mapv="plan" aria-pressed="false" data-i18n="map.plan"></button>
+              </div>
+              <a class="gmlink" id="gmLink" target="_blank" rel="noopener" data-i18n="map.google"></a>
+            </div>
+            <div id="mapLive"></div>
+            <div id="mapHost"></div>
+            <p class="maphint" id="mapHint"></p>
+            <div class="maplegend" id="mapLegend"></div>
+          </section>
+        </div>
+      </div>
 
-          <div class="wxchart" id="wxChart"></div>
-          <div class="segs wxtabs" role="group" data-i18n-al="wx.chart">
+      <!-- ============ อากาศ + เดินทางล่าสุด ============ -->
+      <div class="botrow">
+        <section class="wxcard">
+          <div class="wxtop">
+            <div class="wxnow" id="wxNow"></div>
+            <div class="wxside">
+              <h3 data-i18n="wx.title"></h3>
+              <div class="wxwhen" id="wxWhen"></div>
+              <div class="wxcond" id="wxCond"></div>
+              <div class="wxplace" id="wxPlace"></div>
+              <button class="wxgeo" id="wxGeo">
+                <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+                  <circle cx="8" cy="8" r="3" fill="currentColor"/>
+                  <circle cx="8" cy="8" r="5.6" fill="none" stroke="currentColor" stroke-width="1.3"/>
+                  <path d="M8 .8v2.2M8 13v2.2M.8 8h2.2M13 8h2.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                </svg><span data-i18n="wx.useGps"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="wxtabs" role="group" data-i18n-al="wx.chart">
             <button data-wxm="temp" aria-pressed="true" data-i18n="wx.m.temp"></button>
             <button data-wxm="rain" aria-pressed="false" data-i18n="wx.m.rain"></button>
             <button data-wxm="wind" aria-pressed="false" data-i18n="wx.m.wind"></button>
           </div>
 
+          <div class="wxchart" id="wxChart"></div>
           <div class="wxdays" id="wxDays"></div>
           <p class="note" id="wxNote"></p>
 
-          <div class="segs" role="group" data-i18n-al="wx.override">
-            <button data-wx="auto" aria-pressed="true" data-i18n="wx.auto"></button>
-            <button data-wx="dry" aria-pressed="false" data-i18n="wx.dry"></button>
-            <button data-wx="rain" aria-pressed="false" data-i18n="wx.rain"></button>
-          </div>
-          <div class="wxfoot"><span data-i18n="wx.src"></span></div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-h"><h3 data-i18n="panel.prep"></h3></div>
-        <div class="panel-b">
-          <div id="prepList"></div>
-          <div class="addrow">
-            <input type="text" id="prepName" data-i18n-ph="ph.prepName" autocomplete="off">
-            <input type="number" id="prepMin" value="10" min="0" max="240" data-i18n-al="unit.minShort">
-            <button id="prepAdd" data-i18n="btn.add"></button>
-          </div>
-          <div class="tot"><span data-i18n="prep.total"></span><b><span id="prepTotal">0</span> <span id="prepUnit"></span></b></div>
-        </div>
-      </section>
-    </div>
-
-    <!-- ============ RESULT ============ -->
-    <div class="colmain">
-      <div id="oneView">
-        <div id="errBox" class="err hide wg-full"></div>
-
-        <section class="verdict wg-full" aria-live="polite">
-          <div class="vgrid">
-            <div class="vcell hero">
-              <span class="k" data-i18n="v.prep"></span>
-              <span class="t mono" id="tPrep">—</span>
-              <span class="s" id="sPrep">—</span>
+          <div class="wxfootrow">
+            <div class="segs" role="group" data-i18n-al="wx.override">
+              <button data-wx="auto" aria-pressed="true" data-i18n="wx.auto"></button>
+              <button data-wx="dry" aria-pressed="false" data-i18n="wx.dry"></button>
+              <button data-wx="rain" aria-pressed="false" data-i18n="wx.rain"></button>
             </div>
-            <div class="vcell">
-              <span class="k" data-i18n="v.leave"></span>
-              <span class="t mono" id="tLeave">—</span>
-              <span class="s" id="sLeave">—</span>
-            </div>
-            <div class="vcell">
-              <span class="k" data-i18n="v.arrive"></span>
-              <span class="t mono" id="tArrive">—</span>
-              <span class="s" id="sArrive">—</span>
-            </div>
+            <span class="wxfoot" data-i18n="wx.src"></span>
           </div>
-          <div class="vbar" id="vbar"></div>
         </section>
 
-        <section class="block wg-full">
-          <div class="blockh" data-i18n="modes.title"></div>
-          <div class="modes" id="modes"></div>
-        </section>
-
-        <!-- ผลลัพธ์แยกเป็น 3 คอลัมน์บนจอกว้าง: ไทม์ไลน์ | ที่มาของเวลา+ข้อควรรู้ | แผนที่
-             จอแคบลงจะยุบเป็น 2 แล้วเหลือ 1 คอลัมน์เอง (ดู .colmain ใน styles.css) -->
-        <section class="panel wg-tl">
-          <div class="panel-h"><h3 data-i18n="panel.timeline"></h3></div>
-          <div class="panel-b"><ul class="tl" id="timeline"></ul></div>
-        </section>
-
-        <div class="side2 wg-side">
-          <!-- โผล่เฉพาะตอนมีอะไรจะบอกจริง ๆ ไม่งั้นซ่อนทั้งการ์ด (ดู renderLearn ใน app.js) -->
-          <section class="panel hide" id="learnCard">
-            <div class="panel-h"><h3 data-i18n="learn.title"></h3></div>
-            <div class="panel-b">
-              <p class="lnroute" id="learnRoute"></p>
-              <p class="lnsay" id="learnSay"></p>
-              <button class="ghost sm" id="learnApply" data-i18n="learn.apply"></button>
-            </div>
-          </section>
-          <section class="panel">
-            <div class="panel-h"><h3 data-i18n="panel.breakdown"></h3></div>
-            <div class="panel-b"><ul class="brk" id="breakdown"></ul></div>
-          </section>
-          <section class="panel">
-            <div class="panel-h"><h3 data-i18n="panel.tips"></h3></div>
-            <div class="panel-b"><ul class="tips" id="tips"></ul></div>
-          </section>
-        </div>
-
-        <section class="mapwrap wg-map">
-          <div class="maphead">
-            <h3 data-i18n="panel.map"></h3>
-            <a class="gmlink" id="gmLink" target="_blank" rel="noopener" data-i18n="map.google"></a>
+        <section class="panel hide" id="recentCard">
+          <div class="panel-h">
+            <h3 data-i18n="recent.title"></h3>
+            <button class="ghost sm" id="recentAll" data-i18n="recent.all"></button>
           </div>
-          <div class="segs maptabs" role="group" data-i18n-al="panel.map">
-            <button data-mapv="live" aria-pressed="true" data-i18n="map.live"></button>
-            <button data-mapv="plan" aria-pressed="false" data-i18n="map.plan"></button>
-          </div>
-          <div id="mapLive"></div>
-          <div id="mapHost"></div>
-          <p class="maphint" id="mapHint"></p>
-          <div class="maplegend" id="mapLegend"></div>
+          <div class="panel-b"><div class="recent" id="histRecent"></div></div>
         </section>
       </div>
+    </div>
 
       <div id="dayView" class="hide">
         <section class="panel">
@@ -285,8 +358,7 @@
         <span data-i18n="foot.1"></span>
         <span data-i18n="foot.2"></span>
       </div>
-    </div>
-  </div>
+  </main>
 </div>
 
 <!-- ============ หน้าเข้าสู่ระบบ (โหมดสาธิต) ============

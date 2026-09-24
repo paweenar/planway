@@ -26,6 +26,10 @@ const CASES = [
   ["ตลาดบางใหญ่","สยาม",78,14],
   ["ท่าพระ","สีลม",21,7],
   ["คลองสาน","อโศก",38,9],
+  /* ขารถเมล์: ย่านที่ไม่มีราง และสายทางด่วนที่ไปไกลกว่าปลายทางรถไฟฟ้า */
+  ["วัดดอกไม้","สีลม",34,10],
+  ["ม.ธรรมศาสตร์ ศูนย์รังสิต","อนุสาวรีย์ชัยสมรภูมิ",90,18],
+  ["สายใต้ใหม่","อโศก",70,18],
 ];
 
 let fail = 0;
@@ -56,6 +60,47 @@ const none = transitPlan(P("อารีย์"), P("ตลาดไท"), 1, fa
 console.log(`${none===null?"✓":"✗"} ตลาดไท อยู่นอกโครงข่าย → คืนค่า null`);
 if (none !== null) fail++;
 
+/* ---- รถเมล์ ---- */
+/* ย่านพระราม 3 ไม่มีราง ถ้าเอนจินไม่รู้จัก BRT จะสั่งให้เดินไกลไปขึ้นรถไฟฟ้าแทน */
+const brtPlan = transitPlan(P("วัดดอกไม้"), P("สีลม"), 0, false);
+const usesBrt = brtPlan.segs.some(s => s.t === "ride" && s.line === "brt");
+console.log(`\n${usesBrt?"✓":"✗"} วัดดอกไม้ (พระราม 3) ต้องได้ขึ้น BRT`);
+if (!usesBrt) fail++;
+
+/* ป้ายรถเมล์ต่อเข้าสถานีรถไฟฟ้าเองตามระยะเดิน ไม่ได้เขียนไว้ใน TRANSFERS สักคู่ */
+const mixLeg = transitPlan(P("วัดด่าน"), P("สยาม"), 0, false);
+const busThenRail = mixLeg.segs.some(s => s.t === "ride" && LINES[s.line].spb)
+                 && mixLeg.segs.some(s => s.t === "ride" && !LINES[s.line].spb);
+console.log(`${busThenRail?"✓":"✗"} วัดด่าน → สยาม ต่อจากรถเมล์ขึ้นรางได้เองโดยไม่ต้องเขียนจุดเปลี่ยนสายด้วยมือ`);
+if (!busThenRail) fail++;
+
+/* ---- การเลือกเส้นทาง ---- */
+/* เดิมเอนจินคิดแต่นาที เลยสั่งให้เดิน 22 นาทีไปขึ้น BTS ทั้งที่ BRT จอดอยู่ตรงต้นทาง */
+const brtWalk = transitPlan(P("สาทร"), P("ราชพฤกษ์"), 0, false);
+const rodeBrt = brtWalk.segs.some(s => s.t === "ride" && s.line === "brt");
+const shortWalk = brtWalk.walk <= 6;
+console.log(`${rodeBrt&&shortWalk?"✓":"✗"} สาทร → ราชพฤกษ์ ต้องนั่ง BRT (เดินรวม ${Math.round(brtWalk.walk)} นาที ต้อง ≤ 6)`);
+if (!(rodeBrt && shortWalk)) fail++;
+
+/* ค่าถ่วงมีไว้เลือกทางเท่านั้น ห้ามรั่วเข้าเวลาที่รายงาน — เวลารวมต้องเท่ากับผลบวกของทุกขาเป๊ะ */
+let leakOk = true;
+for (const [a, c] of [["อารีย์","สยาม"],["สาทร","ราชพฤกษ์"],["คลองสาน","อโศก"],["สายใต้ใหม่","อโศก"]]){
+  const p = transitPlan(P(a), P(c), 0, false);
+  const sum = p.segs.reduce((x, s) => x + s.eff, 0);
+  if (Math.abs(sum - p.mean) > 0.01) { leakOk = false; console.log("   ✗", a, "→", c, sum, "≠", p.mean); }
+}
+console.log(`${leakOk?"✓":"✗"} เวลาที่รายงาน = ผลบวกของทุกขาจริง (ค่าถ่วงไม่รั่วเข้ามา)`);
+if (!leakOk) fail++;
+
+/* ถ้าโมเดลความเร็วตามช่วงเวลาไม่ทำงาน เวลานั่งรถชั่วโมงเร่งด่วนกับตอนดึกจะเท่ากันเป๊ะ */
+const rideMinsAt = b => {
+  const p = transitPlan(P("ม.ธรรมศาสตร์ ศูนย์รังสิต"), P("อนุสาวรีย์ชัยสมรภูมิ"), b, false);
+  return p.segs.filter(s => s.t === "ride").reduce((a, s) => a + s.eff, 0);
+};
+const peakRide = rideMinsAt(0), lateRide = rideMinsAt(2);
+const slower = peakRide > lateRide * 1.25;
+console.log(`${slower?"✓":"✗"} สาย 510 เร่งด่วน ${Math.round(peakRide)} นาที ต้องช้ากว่าตอนดึก ${Math.round(lateRide)} นาที อย่างชัดเจน`);
+if (!slower) fail++;
 
 /* ---- เวลาให้บริการ ---- */
 const svcCases = [
@@ -65,6 +110,9 @@ const svcCases = [
   ["sukhumvit", 1*60,  false, "BTS 01:00 ปิดแล้ว"],
   ["boat",      9*60,  true,  "เรือ 09:00 เปิด"],
   ["boat",      20*60, false, "เรือ 20:00 เลิกวิ่งแล้ว"],
+  ["bus8",      23*60+30, false, "รถเมล์สาย 8 23:30 เลิกวิ่งแล้ว"],
+  ["brt",       23*60, true,  "BRT 23:00 ยังวิ่งอยู่"],
+  ["bus511",    5*60,  true,  "รถเมล์สาย 511 05:00 วิ่งแล้ว"],
 ];
 for (const [lid, min, want, label] of svcCases){
   const got = svcOpen(lid, min);
