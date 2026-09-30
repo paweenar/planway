@@ -136,5 +136,27 @@ if (day.length) fail++;
 const drv = svcCheck(drivePlan(P("อารีย์"), P("อโศก"), 2, false), 2*60);
 console.log(`${drv.length===0?"✓":"✗"} แผนขับรถตอนตี 2 → ไม่ติดเวลาให้บริการ`);
 if (drv.length) fail++;
+
+/* ยอดค่าโดยสารที่โชว์ในหน้าเว็บ ต้องเท่ากับผลบวกของรายการย่อยที่โชว์ใต้มันเป๊ะ ๆ
+   ถ้าวันหลังมีขาที่คิดเงินเพิ่ม แล้วลืมแปะ seg.fare ไว้ ตารางจะบวกไม่ครบและเคสนี้จับได้ */
+for (const [from, to, label] of [
+  ["อารีย์","สยาม","รถไฟฟ้าสายเดียว"],
+  ["บางหว้า","ลาดพร้าว","เปลี่ยนสายข้ามระบบ"],
+  ["วัดดอกไม้","สีลม","มีขารถเมล์"],
+]){
+  for (const [kind, plan] of [["นั่งรถ", transitPlan(P(from), P(to), 1, false)],
+                              ["ผสมวิน", mixedPlan(P(from), P(to), 1, false)]]){
+    const items = plan.segs.reduce((n, sg) => n + (sg.fare || 0), 0);
+    const ok = Math.abs(items - plan.fare) < 0.01;
+    if (!ok) fail++;
+    console.log((ok?"✓":"✗") + " ค่าโดยสารรายขารวมได้เท่ายอดรวม — " + label +
+                " (" + kind + ") " + items + "/" + plan.fare + " ฿");
+  }
+}
+
+const drvFare = drivePlan(P("อารีย์"), P("อโศก"), 1, false);
+const drvFareOk = drvFare.segs[0].fare === drvFare.fare;
+if (!drvFareOk) fail++;
+console.log((drvFareOk?"✓":"✗") + " ขับรถ: ขาเดียวถือค่าใช้จ่ายทั้งก้อน");
 console.log(fail ? `\n❌ ไม่ผ่าน ${fail} เคส` : "\n✅ ผ่านทั้งหมด");
 process.exit(fail ? 1 : 0);

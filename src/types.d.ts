@@ -73,6 +73,8 @@ interface Route {
    walk กับ moto ใช้รูปเดียวกัน เพราะ mixedPlan() เปลี่ยน t ของขาเดินยาว ๆ เป็น moto */
 interface SegBase {
   min: number;
+  /** ค่าโดยสารของขานี้ (บาท) มีเฉพาะขาที่ต้องจ่ายเงิน — ride, moto, drive */
+  fare?: number;
   /** เวลาจริงหลังปรับตามฝน/วิน — ไทม์ไลน์และ svcCheck ใช้ค่านี้ ไม่ใช่ min */
   eff: number;
 }

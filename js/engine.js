@@ -264,8 +264,9 @@ function transitPlan(from, to, b, rain) {
                 m *= road ? 1.18 : 1.04;
                 sd *= road ? 1.45 : 1.15;
             }
+            s.fare = fareOf(s.line, s.hops);
             ride += m;
-            fare += fareOf(s.line, s.hops);
+            fare += s.fare;
         }
         if (s.t === "xfer") {
             sd = m * 0.25 + 0.8;
@@ -296,7 +297,7 @@ function drivePlan(from, to, b, rain) {
     }
     const fare = Math.round((km * 6.5 + 40) / 5) * 5; // fuel+toll+parking, or taxi-ish
     return { kind: "drive", mean, sd, fare, km, sp, segs: [
-            { t: "drive", min: mean, eff: mean, km, sp }
+            { t: "drive", min: mean, eff: mean, km, sp, fare }
         ], xfers: 0 };
 }
 function mixedPlan(from, to, b, rain) {
@@ -315,6 +316,7 @@ function mixedPlan(from, to, b, rain) {
             s.walkWas = Math.round(s.min);
             mm = rain ? viaMin * 1.2 : viaMin;
             sd = mm * 0.28;
+            s.fare = 25;
             fare += 25;
             m.extra = (m.extra || 0) + 25;
         }

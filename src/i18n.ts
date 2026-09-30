@@ -148,6 +148,7 @@ th:{
   "mode.none":"ไม่มีเส้นทางที่ครอบคลุม", "mode.closed":"{tag} ปิดแล้ว",
 
   "panel.timeline":"ไทม์ไลน์", "panel.breakdown":"เวลานี้มาจากไหน", "panel.tips":"ต้องเตรียมอะไรเพิ่ม",
+  "panel.fare":"ค่าเดินทางคิดยังไง",
   "panel.map":"แผนที่เส้นทาง", "map.hint":"คลิกสถานีบนแผนที่ = ตั้งเป็นปลายทาง",
   "map.live":"แผนที่จริง", "map.plan":"ผังเส้นทาง",
   "map.hintLive":"ลากเพื่อเลื่อน · หมุนล้อเพื่อซูม · คลิกสถานีเพื่อตั้งเป็นปลายทาง",
@@ -172,6 +173,16 @@ th:{
   "bd.walk":"เดิน / วิน เข้า-ออกสถานี", "bd.wait":"รอรถ", "bd.ride":"นั่งรถไฟฟ้า / รถเมล์ / เรือ",
   "bd.buffer":"เวลากันเหนียว (มั่นใจ {n}%)", "bd.cushion":"เผื่อถึงก่อนเวลานัด",
   "bd.total":"รวมจากออกจากบ้านถึงเวลานัด", "bd.plusPrep":"บวกเวลาเตรียมตัว",
+
+  "fare.baht":"{n} ฿", "fare.hops":"{n} สถานี", "fare.total":"รวมต้องพกเงิน",
+  "fare.howPer":"แรกเข้า {b} ฿ + {p} ฿ × {n} สถานีถัดไป",
+  "fare.howCap":"แรกเข้า {b} ฿ + ค่าต่อสถานี แต่ชนเพดาน {c} ฿ ของสายนี้แล้ว",
+  "fare.howFlat":"ราคาเดียวตลอดสาย {b} ฿ ไม่ว่านั่งกี่สถานี",
+  "fare.moto":"วินมอเตอร์ไซค์", "fare.motoHow":"เหมาจ่าย แทนการเดิน {n} นาที",
+  "fare.drive":"ขับรถเอง หรือเรียกแท็กซี่",
+  "fare.driveHow":"ระยะทางประมาณ {km} กม. รวมน้ำมัน ทางด่วน และที่จอด",
+  "fare.note":"แต่ละสายคิดแยกกัน: ค่าแรกเข้า + ค่าต่อสถานี แต่ไม่เกินเพดานของสายนั้น เปลี่ยนสายข้ามระบบต้องเสียค่าแรกเข้าใหม่ทุกครั้ง ตัวเลขนี้เป็นราคาเที่ยวเดียวแบบจ่ายสด ยังไม่รวมส่วนลดบัตรรายเดือน บัตรนักเรียน หรือโปรโมชัน",
+  "fare.noteDrive":"ประมาณคร่าว ๆ จากระยะทาง กิโลละ 6.5 ฿ บวกค่าเริ่มต้น 40 ฿ ซึ่งครอบคลุมทั้งน้ำมัน ค่าทางด่วน และค่าจอด ถ้าเรียกแท็กซี่หรือแอปเรียกรถ ราคาจะใกล้เคียงกันแต่แกว่งตามช่วงเวลา",
 
   "mk.xfer":"เปลี่ยนสาย", "tip.xfer":"เปลี่ยน {n} ครั้ง — เดินเชื่อมรวม {m} นาที เผื่อไว้แล้ว",
   "mk.fare":"ค่าโดยสาร",
@@ -371,6 +382,7 @@ en:{
   "mode.none":"No route covers this", "mode.closed":"{tag} closed",
 
   "panel.timeline":"Timeline", "panel.breakdown":"Where this time goes", "panel.tips":"Worth knowing",
+  "panel.fare":"How the fare adds up",
   "panel.map":"Route map", "map.hint":"Click a station on the map to set it as your destination",
   "map.live":"Live map", "map.plan":"Schematic",
   "map.hintLive":"Drag to pan · scroll to zoom · click a station to set it as your destination",
@@ -395,6 +407,16 @@ en:{
   "bd.walk":"Walk / moto to and from stations", "bd.wait":"Waiting", "bd.ride":"On the train / bus / boat",
   "bd.buffer":"Safety buffer ({n}% confidence)", "bd.cushion":"Arrive-early margin",
   "bd.total":"Door to appointment, total", "bd.plusPrep":"Plus getting ready",
+
+  "fare.baht":"{n} THB", "fare.hops":"{n} stops", "fare.total":"Total to bring",
+  "fare.howPer":"{b} THB to board + {p} THB × {n} further stops",
+  "fare.howCap":"{b} THB to board + per-stop, but already at this line's {c} THB cap",
+  "fare.howFlat":"Flat {b} THB however far you ride",
+  "fare.moto":"Motorcycle taxi", "fare.motoHow":"Flat rate, replaces a {n} min walk",
+  "fare.drive":"Driving or a taxi",
+  "fare.driveHow":"About {km} km, covering fuel, tolls and parking",
+  "fare.note":"Each line is priced on its own: a boarding fare plus a per-stop charge, capped per line. Switching between systems means paying to board again. These are single-trip cash prices — no monthly pass, student or promotional discounts.",
+  "fare.noteDrive":"A rough estimate: 6.5 THB per km plus 40 THB fixed, covering fuel, tolls and parking. A taxi or ride-hailing app lands near this, but swings with the time of day.",
 
   "mk.xfer":"Transfers", "tip.xfer":"{n} transfer(s) — {m} min of connecting walk, already counted",
   "mk.fare":"Fare",

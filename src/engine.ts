@@ -218,7 +218,7 @@ function transitPlan(from: Point, to: Point, b: Band, rain: boolean): TransitPla
       const road=!!LINES[s.line].spb;
       sd=m*(road?0.22:0.09)+(b===0?0.8:0.3);
       if(rain){ m*=road?1.18:1.04; sd*=road?1.45:1.15; }
-      ride+=m; fare+=fareOf(s.line,s.hops);
+      s.fare=fareOf(s.line,s.hops); ride+=m; fare+=s.fare;
     }
     if(s.t==="xfer"){ sd=m*0.25+0.8; if(rain){m*=1.15; sd*=1.3;} xfers++; walk+=m; }
     s.eff=m; mean+=m; varr+=sd*sd;
@@ -236,7 +236,7 @@ function drivePlan(from: Point, to: Point, b: Band, rain: boolean): DrivePlan {
   if(rain){ mean*=1.28; sd*=1.45; }
   const fare=Math.round((km*6.5+40)/5)*5;    // fuel+toll+parking, or taxi-ish
   return {kind:"drive",mean,sd,fare,km,sp,segs:[
-    {t:"drive",min:mean,eff:mean,km,sp}],xfers:0};
+    {t:"drive",min:mean,eff:mean,km,sp,fare}],xfers:0};
 }
 function mixedPlan(from: Point, to: Point, b: Band, rain: boolean): TransitPlan | null {
   const t=transitPlan(from,to,b,rain); if(!t) return null;
@@ -247,7 +247,7 @@ function mixedPlan(from: Point, to: Point, b: Band, rain: boolean): TransitPlan 
     if(s.t==="walk" && s.min>9){
       const viaMin=3+s.min/3.1;              // motorcycle taxi from/to the station
       s.t="moto"; s.walkWas=Math.round(s.min); mm=rain?viaMin*1.2:viaMin;
-      sd=mm*0.28; fare+=25; m.extra=(m.extra||0)+25;
+      sd=mm*0.28; s.fare=25; fare+=25; m.extra=(m.extra||0)+25;
     } else if(s.t==="walk"){ sd=mm*0.12; }
     else if(s.t==="wait"){ sd=LINES[s.line].hw[b]*0.34; }
     else if(s.t==="ride"){ sd=mm*(LINES[s.line].spb?0.22:0.09)+(b===0?0.8:0.3); }

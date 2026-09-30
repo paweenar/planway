@@ -448,6 +448,39 @@ function renderTimeline(r) {
     host.appendChild(tlItem(hhmm(tm), el("div", "ttl", t("tl.buffer")), t("tl.bufferSub"), mins(r.buffer), "var(--line2)", false, "clock"));
     host.appendChild(tlItem(hhmm(r.target), el("div", "ttl", t("tl.arrive", { p: sname(r.B.name) })), t("tl.arriveSub", { n: S.cushion }), null, "var(--primary)", false, "flag"));
 }
+/* ค่าโดยสารแยกรายสาย — คนต้องรู้ว่าพกเงินเท่าไหร่ และเงินหายไปกับขาไหน
+   ตัวเลขมาจาก LINES[].fare = [ค่าแรกเข้า, ค่าต่อสถานี, เพดาน] ใน src/data.ts
+   เอนจินคิดค่าโดยสารของแต่ละขาอยู่แล้วตอนวางแผน ตรงนี้แค่เอามาแสดง ไม่ได้คิดซ้ำ */
+function renderFare(r) {
+    const host = $("#fareBrk");
+    host.innerHTML = "";
+    const row = (name, how, baht, cls) => {
+        const li = el("li", cls || null);
+        const n = el("span", "n", name);
+        if (how)
+            n.appendChild(el("small", null, how));
+        li.append(n, el("span", "v mono", t("fare.baht", { n: Math.round(baht) })));
+        host.appendChild(li);
+    };
+    if (r.plan.kind === "drive") {
+        row(t("fare.drive"), t("fare.driveHow", { km: Math.round(r.plan.km) }), r.plan.fare);
+    }
+    else {
+        for (const s of r.plan.segs) {
+            if (s.t === "ride") {
+                const L = LINES[s.line], base = L.fare[0], per = L.fare[1], cap = L.fare[2], paid = s.fare ?? 0;
+                const how = per === 0 ? t("fare.howFlat", { b: base })
+                    : paid >= cap ? t("fare.howCap", { b: base, c: cap })
+                        : t("fare.howPer", { b: base, p: per, n: Math.max(0, s.hops - 1) });
+                row(L.n + " · " + sname(s.from) + " → " + sname(s.to) + " · " + t("fare.hops", { n: s.hops }), how, paid);
+            }
+            else if (s.t === "moto")
+                row(t("fare.moto"), t("fare.motoHow", { n: s.walkWas ?? 0 }), s.fare ?? 25);
+        }
+    }
+    row(t("fare.total"), "", r.plan.fare, "sum");
+    $("#fareNote").textContent = r.plan.kind === "drive" ? t("fare.noteDrive") : t("fare.note");
+}
 function renderBreakdown(r) {
     const host = $("#breakdown");
     host.innerHTML = "";
@@ -1112,6 +1145,8 @@ function draw() {
         $("#sumBar").innerHTML = "";
         $("#timeline").innerHTML = "";
         $("#breakdown").innerHTML = "";
+        $("#fareBrk").innerHTML = "";
+        $("#fareNote").textContent = "";
         $("#tips").innerHTML = "";
         $("#modes").innerHTML = "";
         renderMapCard(null);
@@ -1164,6 +1199,7 @@ function draw() {
     renderModes(r);
     renderTimeline(r);
     renderBreakdown(r);
+    renderFare(r);
     renderTips(r);
     renderMapCard(r);
     renderLearn(r);
