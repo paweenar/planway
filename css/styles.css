@@ -694,6 +694,19 @@ input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--a
 .ordiv{display:flex;align-items:center;gap:12px;margin:5px 0;
   font-size:var(--fs-xs);color:var(--ink3);text-transform:uppercase;letter-spacing:var(--track)}
 .ordiv::before,.ordiv::after{content:"";flex:1;height:1px;background:var(--line)}
+/* ฟอร์มอีเมล — ไม่มีช่องรหัสผ่านโดยตั้งใจ ดูเหตุผลที่ PROVIDERS ใน src/prefs.ts
+   ใช้ type="email" + required ให้เบราว์เซอร์ตรวจรูปแบบเอง ไม่ต้องเขียน regex */
+.mailform{display:flex;flex-direction:column;gap:7px}
+.mailform label{font-size:var(--fs-sm);color:var(--ink2)}
+.mailform input{width:100%;min-height:46px;padding:10px 13px;border-radius:10px;
+  border:1px solid var(--line2);background:var(--surface);color:var(--ink);
+  font-family:inherit;font-size:15px}
+.mailform input:focus-visible{outline:2px solid var(--primary);outline-offset:1px;border-color:var(--primary)}
+.mailform button{width:100%;min-height:46px;border:0;border-radius:10px;cursor:pointer;
+  background:var(--primary);color:#fff;font-family:inherit;font-size:15px;font-weight:600}
+.mailform button:hover{background:var(--primary-600)}
+.mailnote{margin:0;font-size:var(--fs-xs);color:var(--ink3);line-height:1.55}
+
 .guestbtn{width:100%;min-height:46px;background:none;border:1px dashed var(--line2);
   border-radius:10px;color:var(--ink2);font-size:var(--fs-body);font-weight:500;cursor:pointer}
 .guestbtn:hover{border-color:var(--accent);color:var(--accent)}

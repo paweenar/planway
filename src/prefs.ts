@@ -58,7 +58,11 @@ applyPrefs();
 const PROVIDERS: Record<string, Provider> = {
   google:   { name:"Google",   demoName:{th:"ผู้ใช้ทดลอง",en:"Demo User"},  demoMail:"demo.user@example.com" },
   apple:    { name:"Apple",    demoName:{th:"ผู้ใช้ทดลอง",en:"Demo User"},  demoMail:"demo.user@privaterelay.example.com" },
-  facebook: { name:"Facebook", demoName:{th:"ผู้ใช้ทดลอง",en:"Demo User"},  demoMail:"demo.user@example.com" }
+  facebook: { name:"Facebook", demoName:{th:"ผู้ใช้ทดลอง",en:"Demo User"},  demoMail:"demo.user@example.com" },
+  /* ช่องอีเมลไม่มีรหัสผ่าน เพราะไม่มีอะไรให้ตรวจ — ไม่มีเซิร์ฟเวอร์ ไม่มีฐานข้อมูล
+     อีเมลที่พิมพ์ใช้เป็นแค่ชื่อถังประวัติในเครื่องนี้ ถ้าใส่ช่องรหัสผ่านไว้ด้วย
+     คนจะพิมพ์รหัสผ่านจริงลงไป แล้วมันจะไปนอนอยู่ใน localStorage เปล่า ๆ */
+  email: { name:"Email", demoName:{th:"ผู้ใช้",en:"You"}, demoMail:"you@example.com" }
 };
 
 let USER: User | null = null;
@@ -67,10 +71,12 @@ try {
   if (raw) USER = JSON.parse(raw);
 } catch (e) {}
 
-function signInWith(provider: string): User | null {
+function signInWith(provider: string, mail?: string): User | null {
   const p = PROVIDERS[provider];
   if (!p) return null;
-  USER = { provider, name: p.demoName[PREFS.lang] || p.demoName.th, email: p.demoMail, demo: true };
+  const email = (mail || "").trim() || p.demoMail;
+  const name = mail ? email.split("@")[0] : (p.demoName[PREFS.lang] || p.demoName.th);
+  USER = { provider, name, email, demo: true };
   try { localStorage.setItem("okd.user.v1", JSON.stringify(USER)); } catch (e) {}
   return USER;
 }

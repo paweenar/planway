@@ -1063,7 +1063,7 @@ function openAuth(open: boolean): void {
   $("#loginView").classList.toggle("hide",!open);
   /* ล็อกไม่ให้หน้าข้างหลังเลื่อนตามขณะหน้าล็อกอินเปิดอยู่ */
   document.body.style.overflow=open?"hidden":"";
-  if(open) $("#authClose").focus();
+  if(open) $("#authMail").focus();
 }
 
 /* วาดข้อความทั้งหน้าใหม่หลังเปลี่ยนภาษา */
@@ -1466,6 +1466,17 @@ document.querySelectorAll<HTMLElement>(".oauth[data-provider]").forEach(b=>{
     openAuth(false); renderAuth(); renderHistory();
   };
 });
+/* กรอกอีเมลแล้วกดต่อ — ทำแบบเดียวกับปุ่มผู้ให้บริการทุกอย่าง ต่างแค่ชื่อที่ติดมากับถัง
+   ไม่มีการตรวจรหัสผ่าน เพราะไม่มีเซิร์ฟเวอร์ให้ตรวจ (ดู PROVIDERS ใน src/prefs.ts) */
+$<HTMLFormElement>("#mailForm").onsubmit=e=>{
+  e.preventDefault();
+  const box=$<HTMLInputElement>("#authMail"), v=box.value.trim();
+  if(!v) return;
+  signInWith("email",v);
+  HIST_CLAIMED=histClaimGuest();
+  box.value="";
+  openAuth(false); renderAuth(); renderHistory();
+};
 $("#guestBtn").onclick=()=>{ openAuth(false); };
 $("#signOutBtn").onclick=()=>{
   signOut(); HIST_CLAIMED=0;
