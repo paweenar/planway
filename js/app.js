@@ -451,6 +451,32 @@ function renderTimeline(r) {
 /* ค่าโดยสารแยกรายสาย — คนต้องรู้ว่าพกเงินเท่าไหร่ และเงินหายไปกับขาไหน
    ตัวเลขมาจาก LINES[].fare = [ค่าแรกเข้า, ค่าต่อสถานี, เพดาน] ใน src/data.ts
    เอนจินคิดค่าโดยสารของแต่ละขาอยู่แล้วตอนวางแผน ตรงนี้แค่เอามาแสดง ไม่ได้คิดซ้ำ */
+/* ตารางราคาทุกสาย วางใต้แผนที่ — คอลัมน์ขวาเดิมสั้นกว่าฝั่งไทม์ไลน์มาก เหลือที่ว่างเปล่า
+   ตัวเลขอ่านจาก LINES[].fare ตรง ๆ ไม่ได้คัดลอกมาไว้ที่นี่ แก้ที่ data.ts ที่เดียวแล้วตารางเปลี่ยนตาม */
+function renderFareTable(r) {
+    const host = $("#fareTable");
+    host.innerHTML = "";
+    const used = new Set();
+    if (r && r.plan.kind !== "drive")
+        for (const s of r.plan.segs)
+            if (s.t === "ride")
+                used.add(s.line);
+    for (const lid of Object.keys(LINES)) {
+        const L = LINES[lid], base = L.fare[0], per = L.fare[1], cap = L.fare[2];
+        const tr = el("tr", used.has(lid) ? "on" : null);
+        const td = el("td");
+        const ln = el("span", "ln");
+        const dot = el("span", "dot");
+        dot.style.background = L.c;
+        ln.append(dot, el("span", "nm", L.n));
+        td.appendChild(ln);
+        tr.appendChild(td);
+        tr.appendChild(el("td", null, String(base)));
+        tr.appendChild(el("td", per ? null : "flat", per ? String(per) : t("fareTab.flat")));
+        tr.appendChild(el("td", null, String(cap)));
+        host.appendChild(tr);
+    }
+}
 function renderFare(r) {
     const host = $("#fareBrk");
     host.innerHTML = "";
@@ -1147,6 +1173,7 @@ function draw() {
         $("#breakdown").innerHTML = "";
         $("#fareBrk").innerHTML = "";
         $("#fareNote").textContent = "";
+        renderFareTable(null);
         $("#tips").innerHTML = "";
         $("#modes").innerHTML = "";
         renderMapCard(null);
@@ -1200,6 +1227,7 @@ function draw() {
     renderTimeline(r);
     renderBreakdown(r);
     renderFare(r);
+    renderFareTable(r);
     renderTips(r);
     renderMapCard(r);
     renderLearn(r);

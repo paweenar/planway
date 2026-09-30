@@ -566,6 +566,27 @@ input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--a
 .brk li.sum .n{color:var(--ink)}
 .note{font-size:var(--fs-sm);color:var(--ink2);margin:0}
 
+/* ตารางราคาต่อสาย — อยู่ใต้แผนที่เพื่อเติมช่องว่างที่คอลัมน์ขวาเหลือ
+   สายที่อยู่ในเส้นทางที่กำลังดูจะถูกเน้น ผู้ใช้จะได้เทียบราคากับทางเลือกอื่นได้ทันที */
+.faretab{display:flex;flex-direction:column;gap:10px}
+.faretab h4{font-size:var(--fs-sect);font-weight:600}
+.ftab{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
+.ftab th{text-align:right;font-weight:500;color:var(--ink3);padding:0 0 7px;
+  border-bottom:1px solid var(--line);white-space:nowrap}
+.ftab th:first-child{text-align:left}
+.ftab td{padding:7px 0;border-bottom:1px solid var(--line);text-align:right;
+  font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.ftab td:first-child{text-align:left;font-family:inherit;color:var(--ink)}
+.ftab tr:last-child td{border-bottom:0}
+.ftab .ln{display:flex;align-items:center;gap:7px;min-width:0}
+/* จุดสีใช้สีจริงของสายนั้นจาก LINES[].c ให้ตรงกับหมุดบนแผนที่และไทม์ไลน์ */
+.ftab .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.ftab .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ftab tr.on td{background:var(--primary-soft);color:var(--ink);font-weight:600}
+.ftab tr.on td:first-child{border-radius:6px 0 0 6px;padding-left:6px}
+.ftab tr.on td:last-child{border-radius:0 6px 6px 0;padding-right:6px}
+.ftab .flat{color:var(--ink3);font-family:inherit}
+
 .tips{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .tips li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;font-size:var(--fs-body);align-items:baseline}
 .tips .mk{font-family:"IBM Plex Mono",monospace;font-size:var(--fs-xs);color:var(--ink3);

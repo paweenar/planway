@@ -149,6 +149,9 @@ th:{
 
   "panel.timeline":"ไทม์ไลน์", "panel.breakdown":"เวลานี้มาจากไหน", "panel.tips":"ต้องเตรียมอะไรเพิ่ม",
   "panel.fare":"ค่าเดินทางคิดยังไง",
+  "fareTab.title":"ราคาต่อสาย", "fareTab.line":"สาย", "fareTab.base":"แรกเข้า",
+  "fareTab.per":"ต่อสถานี", "fareTab.cap":"สูงสุด", "fareTab.flat":"ราคาเดียว",
+  "fareTab.note":"หน่วยเป็นบาท ราคาเที่ยวเดียวแบบจ่ายสด แต่ละสายคิดแยกกัน เปลี่ยนสายข้ามระบบต้องเสียค่าแรกเข้าใหม่ แถวที่เน้นคือสายที่อยู่ในเส้นทางที่กำลังดู",
   "panel.map":"แผนที่เส้นทาง", "map.hint":"คลิกสถานีบนแผนที่ = ตั้งเป็นปลายทาง",
   "map.live":"แผนที่จริง", "map.plan":"ผังเส้นทาง",
   "map.hintLive":"ลากเพื่อเลื่อน · หมุนล้อเพื่อซูม · คลิกสถานีเพื่อตั้งเป็นปลายทาง",
@@ -383,6 +386,9 @@ en:{
 
   "panel.timeline":"Timeline", "panel.breakdown":"Where this time goes", "panel.tips":"Worth knowing",
   "panel.fare":"How the fare adds up",
+  "fareTab.title":"Fares by line", "fareTab.line":"Line", "fareTab.base":"Board",
+  "fareTab.per":"Per stop", "fareTab.cap":"Max", "fareTab.flat":"flat",
+  "fareTab.note":"Baht, single-trip cash fares. Each line is priced on its own, so switching systems means paying to board again. Highlighted rows are the lines in the route you are viewing.",
   "panel.map":"Route map", "map.hint":"Click a station on the map to set it as your destination",
   "map.live":"Live map", "map.plan":"Schematic",
   "map.hintLive":"Drag to pan · scroll to zoom · click a station to set it as your destination",

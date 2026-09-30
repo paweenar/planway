@@ -372,6 +372,27 @@ function renderTimeline(r: ComputeOk): void {
 /* ค่าโดยสารแยกรายสาย — คนต้องรู้ว่าพกเงินเท่าไหร่ และเงินหายไปกับขาไหน
    ตัวเลขมาจาก LINES[].fare = [ค่าแรกเข้า, ค่าต่อสถานี, เพดาน] ใน src/data.ts
    เอนจินคิดค่าโดยสารของแต่ละขาอยู่แล้วตอนวางแผน ตรงนี้แค่เอามาแสดง ไม่ได้คิดซ้ำ */
+/* ตารางราคาทุกสาย วางใต้แผนที่ — คอลัมน์ขวาเดิมสั้นกว่าฝั่งไทม์ไลน์มาก เหลือที่ว่างเปล่า
+   ตัวเลขอ่านจาก LINES[].fare ตรง ๆ ไม่ได้คัดลอกมาไว้ที่นี่ แก้ที่ data.ts ที่เดียวแล้วตารางเปลี่ยนตาม */
+function renderFareTable(r: ComputeOk | null): void {
+  const host=$("#fareTable"); host.innerHTML="";
+  const used=new Set<string>();
+  if(r && r.plan.kind!=="drive") for(const s of r.plan.segs) if(s.t==="ride") used.add(s.line);
+  for(const lid of Object.keys(LINES) as LineId[]){
+    const L=LINES[lid], base=L.fare[0], per=L.fare[1], cap=L.fare[2];
+    const tr=el("tr",used.has(lid)?"on":null);
+    const td=el("td");
+    const ln=el("span","ln");
+    const dot=el("span","dot"); dot.style.background=L.c;
+    ln.append(dot,el("span","nm",L.n));
+    td.appendChild(ln); tr.appendChild(td);
+    tr.appendChild(el("td",null,String(base)));
+    tr.appendChild(el("td",per?null:"flat",per?String(per):t("fareTab.flat")));
+    tr.appendChild(el("td",null,String(cap)));
+    host.appendChild(tr);
+  }
+}
+
 function renderFare(r: ComputeOk): void {
   const host=$("#fareBrk"); host.innerHTML="";
   const row=(name: string, how: string, baht: number, cls?: string): void=>{
@@ -934,6 +955,7 @@ function draw(): void {
     $("#sPrep").textContent=$("#sLeave").textContent=$("#sArrive").textContent="—";
     $("#vbar").innerHTML=""; $("#sumBar").innerHTML="";
     $("#timeline").innerHTML=""; $("#breakdown").innerHTML=""; $("#fareBrk").innerHTML=""; $("#fareNote").textContent="";
+    renderFareTable(null);
     $("#tips").innerHTML=""; $("#modes").innerHTML=""; renderMapCard(null); renderLearn(null); return;
   }
   err.classList.add("hide");
@@ -975,7 +997,7 @@ function draw(): void {
   if(r.svcClosed) add(t("pill.closed"),"warn");
   if(r.fallback) add(t("pill.fallback"),"warn");
 
-  renderModes(r); renderTimeline(r); renderBreakdown(r); renderFare(r); renderTips(r); renderMapCard(r);
+  renderModes(r); renderTimeline(r); renderBreakdown(r); renderFare(r); renderFareTable(r); renderTips(r); renderMapCard(r);
   renderLearn(r); histTouch(r); renderRecent();
 }
 
